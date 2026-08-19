@@ -1,7 +1,8 @@
-import { ArrowUpRight, Clock3, Compass, MapPinned, Utensils } from 'lucide-react'
+import { ArrowUpRight, Compass, MapPinned, Utensils } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { RecipeExplorer } from '@/components/fichas/RecipeExplorer'
 import { honduras, platillos } from '@/scripts/data/honduras'
 
 const featuredRecipes = platillos.slice(0, 3)
@@ -112,30 +113,8 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
-          {featuredRecipes.map((recipe, index) => (
-            <article key={recipe.id} className="group border-t-2 border-[#173c3a] pt-4">
-              <div className="relative aspect-[4/3] overflow-hidden bg-[#d4ddd1]">
-                <Image
-                  src={recipeImages[index]!}
-                  alt={recipe.nombre}
-                  fill
-                  sizes="(max-width: 768px) 90vw, 30vw"
-                  className="object-cover transition duration-700 group-hover:scale-105"
-                />
-              </div>
-              <div className="flex items-start justify-between gap-4 pt-5">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-[#e8754f]">0{index + 1}</p>
-                  <h3 className="mt-2 font-editorial text-3xl">{recipe.nombre}</h3>
-                </div>
-                <span className="mt-1 flex items-center gap-1 text-xs text-[#47615a]">
-                  <Clock3 className="h-3.5 w-3.5" /> {recipe.tiempoPreparacion} min
-                </span>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-[#47615a]">{recipe.descripcion}</p>
-            </article>
-          ))}
+        <div className="mt-14">
+          <RecipeExplorer recipes={featuredRecipes} images={recipeImages} />
         </div>
       </section>
 

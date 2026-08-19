@@ -1,6 +1,7 @@
 'use client'
 
 import { X, MapPin, Utensils } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { Pais } from '@/types'
@@ -11,6 +12,8 @@ interface PanelPaisProps {
 }
 
 export function PanelPais({ pais, onClose }: PanelPaisProps) {
+  const router = useRouter()
+
   return (
     <div className="absolute top-4 right-4 bottom-4 w-full max-w-sm z-[1000] animate-in slide-in-from-right duration-300">
       <Card className="h-full flex flex-col shadow-2xl border-2">
@@ -46,7 +49,7 @@ export function PanelPais({ pais, onClose }: PanelPaisProps) {
 
           {/* Acciones */}
           <div className="space-y-2 pt-4">
-            <Button className="w-full gap-2" size="lg">
+            <Button className="w-full gap-2" size="lg" onClick={() => router.push('/honduras')}>
               <Utensils className="w-4 h-4" />
               Explorar Platillos
             </Button>

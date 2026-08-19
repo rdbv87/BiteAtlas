@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Clock, Users, ChefHat } from 'lucide-react'
+import { X, Clock, Users, ChefHat, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { RecetaSection } from './RecetaSection'
 import { HistoriaSection } from './HistoriaSection'
 import { FestividadesSection } from './FestividadesSection'
+import { VideoPlayer } from './Secciones/VideoPlayer'
 import type { Platillo } from '@/types'
 
 interface FichaCulturalProps {
@@ -15,12 +16,13 @@ interface FichaCulturalProps {
   onClose: () => void
 }
 
-type TabId = 'receta' | 'historia' | 'festival'
+type TabId = 'receta' | 'historia' | 'festival' | 'video'
 
 const tabs: { id: TabId; label: string }[] = [
   { id: 'receta', label: 'Receta' },
   { id: 'historia', label: 'Historia' },
   { id: 'festival', label: 'Festividades' },
+  { id: 'video', label: 'Video' },
 ]
 
 export function FichaCultural({ platillo, isOpen, onClose }: FichaCulturalProps) {
@@ -144,6 +146,22 @@ export function FichaCultural({ platillo, isOpen, onClose }: FichaCulturalProps)
                   )}
                   {activeTab === 'festival' && (
                     <FestividadesSection festividades={platillo.festividades} />
+                  )}
+                  {activeTab === 'video' && platillo.video && (
+                    <VideoPlayer
+                      url={platillo.video}
+                      fallbackImage={platillo.imagenes[0]}
+                      alt={`Preparación de ${platillo.nombre}`}
+                    />
+                  )}
+                  {activeTab === 'video' && !platillo.video && (
+                    <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-lg bg-muted p-6 text-center">
+                      <Play className="h-8 w-8 text-primary" />
+                      <p className="font-semibold">Video en preparación</p>
+                      <p className="text-sm text-muted-foreground">
+                        Esta receta pronto tendrá una guía audiovisual.
+                      </p>
+                    </div>
                   )}
                 </motion.div>
               </AnimatePresence>

@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { collection, getDocs } from 'firebase/firestore'
 import { firestore } from '@/services/firebase'
-import { FichaCultural } from '@/components/fichas/FichaCultural'
+import { RecipeExplorer } from '@/components/fichas/RecipeExplorer'
+import { platillos as platillosLocales } from '@/scripts/data/honduras'
 import type { Platillo, Region } from '@/types'
 
 export default function HondurasPage() {
@@ -27,9 +28,10 @@ export default function HondurasPage() {
             allPlatillos.push(doc.data() as Platillo)
           })
         }
-        setPlatillos(allPlatillos)
+        setPlatillos(allPlatillos.length > 0 ? allPlatillos : platillosLocales)
       } catch (err) {
         console.error('Error fetching platillos:', err)
+        setPlatillos(platillosLocales)
       } finally {
         setIsLoading(false)
       }
@@ -49,24 +51,14 @@ export default function HondurasPage() {
     )
   }
 
-  const handleClose = () => {}
-
   return (
     <div className="min-h-screen bg-background p-6">
       <h1 className="text-3xl font-bold mb-6 text-primary">Recetas Hondureñas Tradicionales</h1>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {platillos.map((platillo) => (
-          <FichaCultural
-            key={platillo.id}
-            platillo={platillo}
-            isOpen={true}
-            onClose={handleClose}
-          />
-        ))}
-      </div>
-
-      {isLoading && <p className="mt-6 text-muted-foreground">Cargando...</p>}
+      <RecipeExplorer
+        recipes={platillos}
+        images={platillos.map((platillo) => platillo.imagenes[0] ?? '/test.jpg')}
+      />
     </div>
   )
 }

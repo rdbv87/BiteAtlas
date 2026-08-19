@@ -1,13 +1,19 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { usePaises } from '@/services/hooks/usePaises'
 import { getCoordenadasPais } from '@/data/paises-coordenadas'
 import { PanelPais } from './PanelPais'
 import type { Pais } from '@/types'
+
+const regionLocations = [
+  { id: 'region-copan-001', name: 'Copán', dish: 'Baleada', lat: 14.84, lng: -89.15 },
+  { id: 'region-ceiba-001', name: 'La Ceiba', dish: 'Sopa de Caracol', lat: 15.77, lng: -86.79 },
+  { id: 'region-comayagua-001', name: 'Comayagua', dish: 'Nacatamal', lat: 14.45, lng: -87.64 },
+]
 
 // Fix for default marker icon
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
@@ -92,7 +98,7 @@ export function MapaMundi() {
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
         <MapController selectedPais={selectedPais} />
         {paises.map((pais) => {
@@ -117,6 +123,23 @@ export function MapaMundi() {
             </Marker>
           )
         })}
+        {paises.some((pais) => pais.id === 'honduras-001') &&
+          regionLocations.map((region) => (
+            <CircleMarker
+              key={region.id}
+              center={[region.lat, region.lng]}
+              radius={8}
+              pathOptions={{ color: '#173c3a', fillColor: '#f0a35b', fillOpacity: 0.95, weight: 3 }}
+            >
+              <Popup>
+                <div className="min-w-32 p-1">
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-[#e8754f]">Región</p>
+                  <h3 className="mt-1 font-semibold text-base">{region.name}</h3>
+                  <p className="mt-1 text-xs text-gray-600">Plato asociado: {region.dish}</p>
+                </div>
+              </Popup>
+            </CircleMarker>
+          ))}
       </MapContainer>
 
       {/* Panel lateral */}

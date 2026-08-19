@@ -70,6 +70,21 @@ export function VideoPlayer({ url, fallbackImage, alt = 'Video del platillo' }: 
     }
   }
 
+  if (url.includes('youtube.com/results')) {
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        className="flex h-64 flex-col items-center justify-center gap-3 rounded-lg bg-[#173c3a] p-6 text-center text-[#f5f1e8] transition-colors hover:bg-[#28524e]"
+      >
+        <span className="text-3xl">▶</span>
+        <span className="font-semibold">Ver preparación en YouTube</span>
+        <span className="text-xs text-[#d4ddd1]">Abrir búsqueda de recetas similares</span>
+      </a>
+    )
+  }
+
   // URL genérica o no reconocida
   return fallbackImage ? (
     <div className="relative rounded-lg overflow-hidden">
