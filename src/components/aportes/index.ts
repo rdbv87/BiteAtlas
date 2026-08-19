@@ -1,0 +1,6 @@
+export { FormularioAporte } from './FormularioAporte'
+export { PasoBasico } from './PasoBasico'
+export { PasoIngredientes } from './PasoIngredientes'
+export { PasoReceta } from './PasoReceta'
+export { PasoCultural } from './PasoCultural'
+export { ResumenAporte } from './ResumenAporte'

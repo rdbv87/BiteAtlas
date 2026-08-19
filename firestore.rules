@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Países - lectura pública, escritura restringida
+    match /paises/{paisId} {
+      allow read: if true;
+      allow write: if false; // Solo ingesta admin
+      
+      // Regiones - lectura pública, escritura restringida
+      match /regiones/{regionId} {
+        allow read: if true;
+        allow write: if false;
+        
+        // Platillos - lectura pública, escritura restringida
+        match /platillos/{platilloId} {
+          allow read: if true;
+          allow write: if false;
+        }
+      }
+    }
+    
+    // Ingredientes - lectura pública, escritura restringida
+    match /ingredientes/{ingredienteId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Aportes pendientes - escritura para contribuidores autenticados (futuro)
+    match /aportes/{aporteId} {
+      allow read: if resource.data.contribuidorId == request.auth.uid;
+      allow create: if true; // Permitir creación sin auth por ahora
+      allow update, delete: if resource.data.contribuidorId == request.auth.uid;
+    }
+  }
+}

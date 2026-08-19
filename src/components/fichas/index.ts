@@ -1,0 +1,6 @@
+export { FichaCultural } from './FichaCultural'
+export { RecetaSection } from './RecetaSection'
+export { HistoriaSection } from './HistoriaSection'
+export { FestividadesSection } from './FestividadesSection'
+export { VideoPlayer } from './Secciones/VideoPlayer'
+export { Galeria } from './Secciones/Galeria'
