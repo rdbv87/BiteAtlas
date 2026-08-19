@@ -1,183 +1,191 @@
-import { ArrowRight, Globe, BookOpen, Users, ChefHat, MapPin, Award } from 'lucide-react'
+import { ArrowUpRight, Clock3, Compass, MapPinned, Utensils } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { honduras, platillos } from '@/scripts/data/honduras'
 
-const features = [
-  {
-    icon: Globe,
-    title: '001 · Setup del Proyecto Base',
-    description:
-      'Configuración inicial de Next.js App Router, TypeScript estricto, Vitest, ESLint, Prettier, Husky y estructura de directorios core.',
-    status: 'completed',
-  },
-  {
-    icon: BookOpen,
-    title: '002 · UI Foundation',
-    description:
-      'Tailwind CSS + shadcn/ui + Radix UI con tokens de diseño (paleta cartográfica, tipografías, breakpoints responsive).',
-    status: 'completed',
-  },
-  {
-    icon: MapPin,
-    title: '003 · Modelo de Dominio + Zod',
-    description:
-      'Definición del modelo de datos (País > Región > Platillo) y esquemas de validación estrictos con Zod.',
-    status: 'completed',
-  },
-  {
-    icon: Users,
-    title: '004 · Firebase Setup',
-    description:
-      'Configuración de Firebase Firestore, credenciales, reglas de seguridad y estructura de colecciones.',
-    status: 'completed',
-  },
-  {
-    icon: Award,
-    title: '005 · Motor de Ingesta',
-    description:
-      'Script versionado para poblar Firestore con Honduras como región piloto (datos antropológicos).',
-    status: 'completed',
-  },
-  {
-    icon: Globe,
-    title: '006 · Navegación Cartográfica Interactiva',
-    description:
-      'Mapa interactivo con Leaflet/React-Leaflet, navegación por teclado, ARIA labels y panel de información lateral.',
-    status: 'completed',
-  },
-  {
-    icon: BookOpen,
-    title: '007 · Fichas Culturales Inmersivas',
-    description:
-      'Panel deslizante con tabs (Receta/Historia/Festividades), videos YouTube/Vimeo y galería de imágenes.',
-    status: 'completed',
-  },
-  {
-    icon: ChefHat,
-    title: '008 · Ecosistema de Aportes',
-    description:
-      'Módulo seguro para que chefs locales y guardianes de tradiciones aporten patrimonio culinario.',
-    status: 'in-progress',
-  },
-]
+const featuredRecipes = platillos.slice(0, 3)
 
-const stats = [
-  { value: '8', label: 'Features' },
-  { value: '7', label: 'Hechas ✅' },
-  { value: '1', label: 'En progreso' },
+const recipeImages = [
+  'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=900&q=85',
+  'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=900&q=85',
+  'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=85',
 ]
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Hero */}
-      <section className="flex flex-col items-center justify-center px-6 py-24 text-center bg-gradient-to-b from-background to-muted/50">
-        <div className="max-w-3xl space-y-6">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-6xl font-heading">
-            <span className="text-primary">Bite</span>Atlas
-          </h1>
-          <p className="text-lg text-muted-foreground sm:text-xl max-w-2xl mx-auto font-editorial">
-            Expedición culinaria global. Conecta con las tradiciones, historias antropológicas y
-            recetas auténticas de todo el mundo.
-          </p>
-          <div className="flex flex-col gap-4 sm:flex-row justify-center">
-            <Link href="/mapa" className="flex items-center gap-2">
-              <Button size="lg" className="gap-2">
-                Explorar el Mapa
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-            <Link href="/demo" className="flex items-center gap-2">
-              <Button size="lg" variant="outline" className="gap-2">
-                Ver Demo
-              </Button>
-            </Link>
+    <main className="overflow-hidden bg-[#f5f1e8] text-[#173c3a]">
+      <section className="relative isolate min-h-[720px] bg-[#173c3a] text-[#f5f1e8]">
+        <div className="absolute inset-0 -z-10 opacity-30 [background-image:linear-gradient(rgba(245,241,232,.12)_1px,transparent_1px),linear-gradient(90deg,rgba(245,241,232,.12)_1px,transparent_1px)] [background-size:72px_72px]" />
+        <div className="mx-auto grid min-h-[720px] max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-[1.05fr_.95fr] lg:px-10">
+          <div className="max-w-2xl">
+            <div className="mb-10 flex items-center gap-3 text-xs uppercase tracking-[0.28em] text-[#f0a35b]">
+              <span className="h-px w-10 bg-[#f0a35b]" />
+              Atlas culinario · 01
+            </div>
+            <h1 className="max-w-3xl font-editorial text-6xl leading-[0.98] tracking-[-0.03em] sm:text-7xl lg:text-8xl">
+              Donde cada plato guarda un territorio.
+            </h1>
+            <p className="mt-8 max-w-xl text-lg leading-8 text-[#d4ddd1]">
+              Historias, ingredientes y recetas que cruzan fronteras. Empezamos en Honduras para
+              leer un país a través de su mesa.
+            </p>
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+              <Link href="/mapa">
+                <Button
+                  size="lg"
+                  className="w-full gap-2 bg-[#e8754f] text-white hover:bg-[#d96340] sm:w-auto"
+                >
+                  Entrar al mapa
+                  <ArrowUpRight className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href="#recetas">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full border-[#d4ddd1]/40 bg-transparent text-[#f5f1e8] hover:bg-[#f5f1e8]/10 hover:text-[#f5f1e8] sm:w-auto"
+                >
+                  Ver recetas
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          <div className="relative mx-auto w-full max-w-lg lg:justify-self-end">
+            <div className="absolute -right-3 -top-5 z-10 flex h-28 w-28 rotate-6 flex-col justify-center bg-[#f0a35b] p-4 text-[#173c3a] shadow-xl sm:-right-7">
+              <span className="text-[10px] uppercase tracking-[0.2em]">En foco</span>
+              <strong className="mt-1 font-editorial text-2xl">Honduras</strong>
+              <span className="mt-1 text-xs">Caribe · Maíz · Coco</span>
+            </div>
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] border border-[#d4ddd1]/20 bg-[#315955] p-3 shadow-2xl">
+              <Image
+                src={recipeImages[0]!}
+                alt="Baleada hondureña servida en una mesa"
+                fill
+                sizes="(max-width: 1024px) 90vw, 40vw"
+                className="rounded-[1rem] object-cover p-3"
+              />
+            </div>
+            <div className="absolute -bottom-5 -left-5 max-w-[230px] bg-[#f5f1e8] p-4 text-[#173c3a] shadow-xl sm:-left-10">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-[#e8754f]">
+                <MapPinned className="h-4 w-4" /> Costa norte
+              </div>
+              <p className="mt-2 font-editorial text-lg leading-tight">
+                La baleada como puerta de entrada.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="border-y bg-muted/30">
-        <div className="grid grid-cols-3 divide-x max-w-4xl mx-auto">
-          {stats.map((stat) => (
-            <div key={stat.label} className="px-6 py-8 text-center">
-              <div className="text-3xl font-bold text-primary">{stat.value}</div>
-              <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
+      <section className="border-b border-[#173c3a]/15 bg-[#e6eadc]">
+        <div className="mx-auto grid max-w-7xl gap-8 px-6 py-8 sm:grid-cols-3 sm:px-10">
+          <div>
+            <p className="text-4xl font-editorial">01</p>
+            <p className="mt-1 text-sm text-[#47615a]">país en el atlas</p>
+          </div>
+          <div>
+            <p className="text-4xl font-editorial">03</p>
+            <p className="mt-1 text-sm text-[#47615a]">recetas con historia</p>
+          </div>
+          <div>
+            <p className="text-4xl font-editorial">∞</p>
+            <p className="mt-1 text-sm text-[#47615a]">maneras de compartir la mesa</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="recetas" className="mx-auto max-w-7xl px-6 py-24 sm:px-10 lg:py-32">
+        <div className="grid gap-12 lg:grid-cols-[.72fr_1.28fr] lg:items-end">
+          <div>
+            <div className="flex items-center gap-3 text-xs uppercase tracking-[0.24em] text-[#e8754f]">
+              <Utensils className="h-4 w-4" /> Cuaderno de campo
             </div>
+            <h2 className="mt-5 max-w-lg font-editorial text-5xl leading-[1.02] tracking-[-0.02em] sm:text-6xl">
+              Tres formas de contar Honduras.
+            </h2>
+          </div>
+          <p className="max-w-xl text-lg leading-8 text-[#47615a]">
+            La cocina no es una lista de ingredientes. Es memoria, territorio y tiempo compartido.
+            Estas son las primeras historias que ponemos sobre la mesa.
+          </p>
+        </div>
+
+        <div className="mt-14 grid gap-6 md:grid-cols-3">
+          {featuredRecipes.map((recipe, index) => (
+            <article key={recipe.id} className="group border-t-2 border-[#173c3a] pt-4">
+              <div className="relative aspect-[4/3] overflow-hidden bg-[#d4ddd1]">
+                <Image
+                  src={recipeImages[index]!}
+                  alt={recipe.nombre}
+                  fill
+                  sizes="(max-width: 768px) 90vw, 30vw"
+                  className="object-cover transition duration-700 group-hover:scale-105"
+                />
+              </div>
+              <div className="flex items-start justify-between gap-4 pt-5">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-[#e8754f]">0{index + 1}</p>
+                  <h3 className="mt-2 font-editorial text-3xl">{recipe.nombre}</h3>
+                </div>
+                <span className="mt-1 flex items-center gap-1 text-xs text-[#47615a]">
+                  <Clock3 className="h-3.5 w-3.5" /> {recipe.tiempoPreparacion} min
+                </span>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-[#47615a]">{recipe.descripcion}</p>
+            </article>
           ))}
         </div>
       </section>
 
-      {/* Features */}
-      <section className="px-6 py-24">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl font-heading">
-              Explora la Gastronomía Mundial
+      <section className="bg-[#dce5dd] px-6 py-24 sm:px-10 lg:py-32">
+        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1fr_.8fr] lg:items-center">
+          <div>
+            <div className="flex items-center gap-3 text-xs uppercase tracking-[0.24em] text-[#e8754f]">
+              <Compass className="h-4 w-4" /> La expedición empieza aquí
+            </div>
+            <h2 className="mt-5 max-w-2xl font-editorial text-5xl leading-[1.02] tracking-[-0.02em] sm:text-6xl">
+              Sigue el sabor hasta su lugar de origen.
             </h2>
-            <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-              BiteAtlas es más que un recetario. Es un puente cultural que conecta personas a través
-              de lo que comemos.
+            <p className="mt-6 max-w-xl text-lg leading-8 text-[#47615a]">
+              Explora el mapa, elige un país y deja que sus regiones te lleven a sus ingredientes,
+              sus voces y sus platos.
             </p>
+            <Link href="/mapa" className="mt-8 inline-flex">
+              <Button size="lg" className="gap-2 bg-[#173c3a] text-[#f5f1e8] hover:bg-[#28524e]">
+                Explorar {honduras.nombre}
+                <ArrowUpRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
-
-          <div className="grid gap-6 sm:grid-cols-3">
-            {features.map((feature) => (
-              <Card
-                key={feature.title}
-                className="border-2 hover:border-primary/50 transition-colors"
-              >
-                <CardHeader>
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
-                    <feature.icon className="w-6 h-6 text-primary" />
-                  </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base">{feature.description}</CardDescription>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="relative min-h-[300px] overflow-hidden bg-[#173c3a] p-8 text-[#f5f1e8] [background-image:radial-gradient(circle_at_20%_20%,rgba(240,163,91,.8)_0_2px,transparent_3px),linear-gradient(135deg,transparent_49%,rgba(212,221,209,.15)_50%,transparent_51%)] [background-size:36px_36px,100%_100%]">
+            <div className="absolute left-[22%] top-[30%] h-4 w-4 rounded-full bg-[#f0a35b] shadow-[0_0_0_8px_rgba(240,163,91,.18)]" />
+            <div className="absolute left-[22%] top-[30%] h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#f0a35b]/40" />
+            <div className="absolute bottom-8 left-8 max-w-[220px]">
+              <p className="text-xs uppercase tracking-[0.2em] text-[#f0a35b]">Punto de partida</p>
+              <p className="mt-2 font-editorial text-3xl">Honduras</p>
+              <p className="mt-2 text-sm leading-6 text-[#d4ddd1]">15° N · 86° O</p>
+            </div>
+            <span className="absolute right-8 top-8 text-xs uppercase tracking-[0.2em] text-[#d4ddd1]/60">
+              BiteAtlas / mapa 01
+            </span>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="px-6 py-24 bg-primary text-primary-foreground">
-        <div className="max-w-3xl mx-auto text-center space-y-6">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl font-heading">
-            ¿Listo para Explorar?
-          </h2>
-          <p className="text-primary-foreground/80 text-lg max-w-xl mx-auto">
-            Únete a la comunidad de exploradores culinarios y descubre los sabores del mundo.
-          </p>
-          <Button size="lg" variant="secondary" className="gap-2">
-            Comenzar Ahora
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="px-6 py-8 border-t bg-background">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="text-sm text-muted-foreground">
-            © 2024 BiteAtlas. Plataforma de expedición culinaria global.
-          </div>
-          <div className="flex gap-6 text-sm text-muted-foreground">
-            <a href="#" className="hover:text-foreground transition-colors">
-              Acerca de
-            </a>
-            <a href="#" className="hover:text-foreground transition-colors">
-              GitHub
-            </a>
-            <a href="#" className="hover:text-foreground transition-colors">
-              Contacto
-            </a>
-          </div>
+      <footer className="bg-[#173c3a] px-6 py-10 text-[#d4ddd1] sm:px-10">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <p className="font-editorial text-xl text-[#f5f1e8]">BiteAtlas</p>
+          <p>Un atlas vivo de las cocinas que nos cuentan.</p>
+          <Link
+            href="/aportes"
+            className="inline-flex items-center gap-2 text-[#f0a35b] hover:text-[#f5f1e8]"
+          >
+            Comparte una receta <ArrowUpRight className="h-4 w-4" />
+          </Link>
         </div>
       </footer>
-    </div>
+    </main>
   )
 }

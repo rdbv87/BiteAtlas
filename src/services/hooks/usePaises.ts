@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react'
 import { collection, getDocs } from 'firebase/firestore'
 import { firestore } from '@/services/firebase'
+import { honduras } from '@/scripts/data/honduras'
 import type { Pais } from '@/types'
 
 export function usePaises() {
   const [paises, setPaises] = useState<Pais[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -18,11 +18,12 @@ export function usePaises() {
         const snapshot = await getDocs(collection(firestore, 'paises'))
         const data = snapshot.docs.map((doc) => doc.data() as Pais)
         if (!cancelled) {
-          setPaises(data)
+          setPaises(data.length > 0 ? data : [honduras])
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err as Error)
+          console.warn('No se pudo sincronizar Firestore; usando el atlas local.', err)
+          setPaises([honduras])
         }
       } finally {
         if (!cancelled) {
@@ -38,5 +39,5 @@ export function usePaises() {
     }
   }, [])
 
-  return { paises, isLoading, error }
+  return { paises, isLoading, error: null }
 }
