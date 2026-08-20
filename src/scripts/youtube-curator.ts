@@ -1,3 +1,8 @@
+import dotenv from 'dotenv'
+
+dotenv.config({ path: '.env.local' })
+dotenv.config()
+
 import type { TipoVideoReceta, VideoReceta } from '@/types'
 
 interface SearchItem {
@@ -45,11 +50,25 @@ function normalize(value: string): string {
 }
 
 function matchesRecipe(item: VideoItem, recipeName: string): boolean {
-  const text = normalize(`${item.snippet?.title ?? ''} ${item.snippet?.description ?? ''}`)
   const terms = normalize(recipeName)
     .split(/\s+/)
     .filter((term) => term.length > 3)
-  return terms.every((term) => text.includes(term))
+  const title = normalize(item.snippet?.title ?? '')
+  const description = normalize(item.snippet?.description ?? '')
+  const text = `${title} ${description}`
+  const culinarySignals =
+    /receta|prepar|ingredien|cocina|cocinando|cocinar|paso a paso|como hacer|how to/
+  const nonRecipeSignals =
+    /cancion|musica|banda|proband|degust|reportaje|noticia|viaje|vlog|reaccion/
+  const alternativeCountrySignals =
+    /nicarag|mexic|colombia|peru|argentina|guatemala|el salvador|costa rica|panama/
+
+  return (
+    terms.every((term) => title.includes(term)) &&
+    culinarySignals.test(text) &&
+    !nonRecipeSignals.test(text) &&
+    !alternativeCountrySignals.test(title)
+  )
 }
 
 export async function curateRecipeVideos(

@@ -32,15 +32,36 @@ describe('YouTube recipe curator', () => {
           items: [
             {
               id: 'short-1',
-              snippet: { title: 'Baleada hondureña #shorts', channelTitle: 'Cocina HN' },
+              snippet: {
+                title: 'Receta rápida de Baleada hondureña #shorts',
+                channelTitle: 'Cocina HN',
+              },
               contentDetails: { duration: 'PT40S' },
               statistics: { viewCount: '900' },
             },
             {
               id: 'normal-1',
-              snippet: { title: 'Receta de baleada hondureña', channelTitle: 'Cocina HN' },
+              snippet: {
+                title: 'Receta de baleada hondureña paso a paso',
+                channelTitle: 'Cocina HN',
+              },
               contentDetails: { duration: 'PT12M' },
               statistics: { viewCount: '1200' },
+            },
+            {
+              id: 'music-1',
+              snippet: { title: 'Banda Blanca - Sopa de Caracol', channelTitle: 'Música' },
+              contentDetails: { duration: 'PT4M' },
+              statistics: { viewCount: '99999999' },
+            },
+            {
+              id: 'wrong-country-1',
+              snippet: {
+                title: 'Receta de Nacatamales nicaragüenses paso a paso',
+                channelTitle: 'Cocina Centroamericana',
+              },
+              contentDetails: { duration: 'PT10M' },
+              statistics: { viewCount: '99999999' },
             },
           ],
         } as unknown as YouTubeResponse<T>
