@@ -19,10 +19,10 @@ export function VideoPlayer({ url, fallbackImage, alt = 'Video del platillo' }: 
           <iframe
             width="100%"
             height="240"
-            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
+            src={`https://www.youtube.com/embed/${videoId}?rel=0`}
             title={alt}
             frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
             className="w-full h-64"
           />
@@ -49,10 +49,10 @@ export function VideoPlayer({ url, fallbackImage, alt = 'Video del platillo' }: 
           <iframe
             width="100%"
             height="240"
-            src={`https://player.vimeo.com/video/${videoId}?autoplay=1&background=0`}
+            src={`https://player.vimeo.com/video/${videoId}?background=0`}
             title={alt}
             frameBorder="0"
-            allow="autoplay; fullscreen; picture-in-picture"
+            allow="fullscreen; picture-in-picture"
             allowFullScreen
             className="w-full h-64"
           />
