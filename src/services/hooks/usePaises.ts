@@ -3,27 +3,46 @@
 import { useState, useEffect } from 'react'
 import { collection, getDocs } from 'firebase/firestore'
 import { firestore } from '@/services/firebase'
-import { honduras } from '@/scripts/data/honduras'
+import {
+  canUseFirestoreReads,
+  disableFirestoreReads,
+  isMissingDefaultFirestoreDatabase,
+} from '@/services/firestore-read-guard'
+import { localPaises } from '@/scripts/data'
 import type { Pais } from '@/types'
 
 export function usePaises() {
   const [paises, setPaises] = useState<Pais[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
     let cancelled = false
 
     async function fetchPaises() {
+      if (!firestore || !canUseFirestoreReads()) {
+        if (!cancelled) {
+          setPaises(localPaises)
+          setIsLoading(false)
+        }
+        return
+      }
+
       try {
         const snapshot = await getDocs(collection(firestore, 'paises'))
         const data = snapshot.docs.map((doc) => doc.data() as Pais)
         if (!cancelled) {
-          setPaises(data.length > 0 ? data : [honduras])
+          setPaises(data)
         }
       } catch (err) {
         if (!cancelled) {
-          console.warn('No se pudo sincronizar Firestore; usando el atlas local.', err)
-          setPaises([honduras])
+          setPaises(localPaises)
+          if (isMissingDefaultFirestoreDatabase(err)) {
+            disableFirestoreReads()
+          } else {
+            console.warn('No se pudo sincronizar Firestore; usando paises locales.')
+          }
+          setError(err instanceof Error ? err : new Error('Error desconocido al cargar países'))
         }
       } finally {
         if (!cancelled) {
@@ -39,5 +58,5 @@ export function usePaises() {
     }
   }, [])
 
-  return { paises, isLoading, error: null }
+  return { paises, isLoading, error }
 }

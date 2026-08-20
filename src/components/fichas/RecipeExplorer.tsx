@@ -4,14 +4,14 @@ import { useState } from 'react'
 import { ArrowUpRight, Clock3 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { FichaCultural } from './FichaCultural'
+import { optimizeUnsplashUrl } from '@/lib/utils'
 import type { Platillo } from '@/types'
 
 interface RecipeExplorerProps {
   recipes: Platillo[]
-  images: string[]
 }
 
-export function RecipeExplorer({ recipes, images }: RecipeExplorerProps) {
+export function RecipeExplorer({ recipes }: RecipeExplorerProps) {
   const [selectedRecipe, setSelectedRecipe] = useState<Platillo | null>(null)
 
   return (
@@ -35,7 +35,7 @@ export function RecipeExplorer({ recipes, images }: RecipeExplorerProps) {
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-[#d4ddd1]">
                 <img
-                  src={images[index]}
+                  src={optimizeUnsplashUrl(recipe.imagenes[0] ?? '/test.jpg')}
                   alt={recipe.nombre}
                   className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                 />

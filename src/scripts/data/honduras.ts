@@ -20,6 +20,8 @@ export const regiones: Region[] = [
     nombre: 'Copán',
     descripcion:
       'Región occidental de Honduras, cuna de la civilización maya. Su gastronomía combina tradiciones ancestrales con ingredientes locales como el maíz y los frijoles.',
+    lat: 14.84,
+    lng: -89.15,
   },
   {
     id: 'region-ceiba-001',
@@ -27,6 +29,8 @@ export const regiones: Region[] = [
     nombre: 'La Ceiba',
     descripcion:
       'Capital de la costa norte hondureña. Influencia fuerte de la cultura garífuna y afrocaribeña, con platos basados en coco, mariscos y plátano.',
+    lat: 15.77,
+    lng: -86.79,
   },
   {
     id: 'region-comayagua-001',
@@ -34,6 +38,8 @@ export const regiones: Region[] = [
     nombre: 'Comayagua',
     descripcion:
       'Región central con tradiciones coloniales. Cocina casera basada en cerdo, maíz y lácteos.',
+    lat: 14.45,
+    lng: -87.64,
   },
 ]
 

@@ -171,16 +171,34 @@ export function FichaCultural({ platillo, isOpen, onClose }: FichaCulturalProps)
                       ))}
                     </div>
                   )}
-                  {activeTab === 'video' && (!platillo.videos || platillo.videos.length === 0) && (
-                    <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-lg bg-muted p-6 text-center">
-                      <Play className="h-8 w-8 text-primary" />
-                      <p className="font-semibold">Videos en curación</p>
-                      <p className="text-sm text-muted-foreground">
-                        Seleccionaremos un Short y un video completo con evidencia de vistas,
-                        duración y consulta.
-                      </p>
+                  {activeTab === 'video' && platillo.video && (
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.18em] text-primary">
+                          Video del aporte
+                        </p>
+                        <h3 className="mt-1 font-semibold leading-tight">
+                          Preparación de {platillo.nombre}
+                        </h3>
+                      </div>
+                      <VideoPlayer
+                        url={platillo.video}
+                        alt={`Video del aporte: preparación de ${platillo.nombre}`}
+                      />
                     </div>
                   )}
+                  {activeTab === 'video' &&
+                    !platillo.video &&
+                    (!platillo.videos || platillo.videos.length === 0) && (
+                      <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-lg bg-muted p-6 text-center">
+                        <Play className="h-8 w-8 text-primary" />
+                        <p className="font-semibold">Videos en curación</p>
+                        <p className="text-sm text-muted-foreground">
+                          Seleccionaremos un Short y un video completo con evidencia de vistas,
+                          duración y consulta.
+                        </p>
+                      </div>
+                    )}
                 </motion.div>
               </AnimatePresence>
             </div>

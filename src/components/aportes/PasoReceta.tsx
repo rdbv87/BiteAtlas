@@ -11,6 +11,9 @@ interface PasoRecetaProps {
   form: UseFormReturn<FormData>
 }
 
+const inputClassName =
+  'h-11 rounded-xl border-[#173c3a]/15 bg-white px-3 text-sm text-[#173c3a] placeholder:text-[#47615a]/70 focus-visible:border-[#e8754f] focus-visible:ring-3 focus-visible:ring-[#e8754f]/25'
+
 export function PasoReceta({ form }: PasoRecetaProps) {
   const {
     formState: { errors },
@@ -39,49 +42,66 @@ export function PasoReceta({ form }: PasoRecetaProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Preparación</h3>
-        <Button type="button" variant="outline" size="sm" onClick={agregarPaso} className="gap-2">
+        <div>
+          <p className="text-xs uppercase tracking-[0.24em] text-[#173c3a]/70">Paso 3</p>
+          <h3 className="font-editorial mt-2 text-3xl leading-[1.03] tracking-[-0.02em] text-[#173c3a]">
+            Método de preparación
+          </h3>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={agregarPaso}
+          className="h-10 rounded-full border-[#173c3a]/20 bg-[#f5f1e8] px-5 text-[#173c3a] hover:bg-[#ecf2e8]"
+        >
           <Plus className="w-4 h-4" />
           Agregar Paso
         </Button>
       </div>
 
       {errors.instrucciones && (
-        <p className="text-sm text-destructive">{errors.instrucciones.message}</p>
+        <p className="text-sm text-[#b5432a]">{errors.instrucciones.message}</p>
       )}
 
       <div className="space-y-4">
         {pasos.map((paso, index) => (
-          <div key={index} className="flex gap-2 items-start">
-            <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold mt-1">
-              {index + 1}
-            </span>
-            <div className="flex-1">
-              <Input
-                placeholder={`Paso ${index + 1}`}
-                value={paso}
-                onChange={(e) => actualizarPaso(index, e.target.value)}
-              />
+          <div key={index} className="rounded-2xl border border-[#173c3a]/10 bg-white p-4 sm:p-5">
+            <div className="flex items-start gap-3">
+              <span className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#e8754f] text-sm font-semibold text-white">
+                {index + 1}
+              </span>
+              <div className="flex-1">
+                <Input
+                  placeholder={`Paso ${index + 1}`}
+                  value={paso}
+                  onChange={(e) => actualizarPaso(index, e.target.value)}
+                  className={inputClassName}
+                />
+                <p className="mt-2 text-xs text-[#47615a]">
+                  Usa verbos de acción para facilitar la reproducción de la receta.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => eliminarPaso(index)}
+                className="h-11 w-11 rounded-xl text-[#b5432a] hover:bg-[#fdf1ec]"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => eliminarPaso(index)}
-              className="h-10 w-10 text-destructive"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
           </div>
         ))}
       </div>
 
       {pasos.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
-          <p>No has agregado pasos de preparación aún.</p>
-          <p className="text-sm mt-2">Haz clic en &quot;Agregar Paso&quot; para comenzar.</p>
+        <div className="rounded-2xl border border-dashed border-[#173c3a]/20 bg-[#f5f1e8] py-12 text-center text-[#47615a]">
+          <p className="text-base">No has agregado pasos de preparación aún.</p>
+          <p className="mt-2 text-sm">Haz clic en Agregar Paso para comenzar.</p>
         </div>
       )}
     </div>

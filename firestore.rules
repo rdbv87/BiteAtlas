@@ -20,6 +20,13 @@ service cloud.firestore {
       }
     }
     
+    // Platillos raíz - lectura pública, creación por usuarios autenticados
+    match /platillos/{platilloId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.contribuidorId;
+    }
+
     // Ingredientes - lectura pública, escritura restringida
     match /ingredientes/{ingredienteId} {
       allow read: if true;

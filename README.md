@@ -16,6 +16,16 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+### Configurar CORS de Firebase Storage
+
+La subida de imágenes desde el navegador requiere configurar CORS en el bucket de Storage. En Google Cloud Shell, sube primero `storage-cors.json` y ejecuta:
+
+```bash
+gcloud storage buckets update gs://bite-atlas-world.firebasestorage.app --cors-file=storage-cors.json
+```
+
+En PowerShell, usa la misma orden en una sola línea. No uses `\` como continuación de línea, porque PowerShell lo interpreta como un argumento separado. Si `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` apunta a otro bucket, reemplaza el nombre en el comando.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

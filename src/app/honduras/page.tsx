@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { collection, getDocs } from 'firebase/firestore'
 import { firestore } from '@/services/firebase'
 import { RecipeExplorer } from '@/components/fichas/RecipeExplorer'
-import { platillos as platillosLocales } from '@/scripts/data/honduras'
 import type { Platillo, Region } from '@/types'
 
 export default function HondurasPage() {
@@ -13,6 +12,12 @@ export default function HondurasPage() {
 
   useEffect(() => {
     async function fetchPlatillos() {
+      if (!firestore) {
+        setPlatillos([])
+        setIsLoading(false)
+        return
+      }
+
       try {
         const snapshot = await getDocs(collection(firestore, 'paises', 'honduras-001', 'regiones'))
         const regionsData: Region[] = []
@@ -28,10 +33,10 @@ export default function HondurasPage() {
             allPlatillos.push(doc.data() as Platillo)
           })
         }
-        setPlatillos(allPlatillos.length > 0 ? allPlatillos : platillosLocales)
+        setPlatillos(allPlatillos)
       } catch (err) {
         console.error('Error fetching platillos:', err)
-        setPlatillos(platillosLocales)
+        setPlatillos([])
       } finally {
         setIsLoading(false)
       }
@@ -55,10 +60,7 @@ export default function HondurasPage() {
     <div className="min-h-screen bg-background p-6">
       <h1 className="text-3xl font-bold mb-6 text-primary">Recetas Hondureñas Tradicionales</h1>
 
-      <RecipeExplorer
-        recipes={platillos}
-        images={platillos.map((platillo) => platillo.imagenes[0] ?? '/test.jpg')}
-      />
+      <RecipeExplorer recipes={platillos} />
     </div>
   )
 }

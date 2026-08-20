@@ -63,6 +63,8 @@ export const RegionSchema = z.object({
   nombre: z.string().min(1).max(100),
   descripcion: z.string().optional(),
   imagen: z.string().url().optional(),
+  lat: z.number().optional(),
+  lng: z.number().optional(),
 })
 
 export const IngredienteSchema = z.object({
@@ -80,7 +82,10 @@ export const IngredientePlatilloSchema = z.object({
 
 export const PlatilloSchema = z.object({
   id: z.string().min(1),
+  paisId: z.string().min(1),
   regionId: z.string().min(1),
+  lat: z.number().min(-90).max(90).optional(),
+  lng: z.number().min(-180).max(180).optional(),
   nombre: z.string().min(1).max(200),
   descripcion: z.string().min(1),
   instrucciones: z.array(z.string().min(1)).min(1),
@@ -91,6 +96,7 @@ export const PlatilloSchema = z.object({
   imagenes: z.array(z.string().url()).min(1),
   imagenesFuentes: z.array(ImagenRecetaSchema).optional(),
   video: z.string().url().optional(),
+  varianteDeId: z.string().optional(),
   contextoHistorico: z.string().optional(),
   festividades: z.array(z.string()).optional(),
   videos: z.array(VideoRecetaSchema).max(2).optional(),

@@ -14,6 +14,7 @@ export const coordenadasPaises: CoordenadasPais[] = [
   { id: 'panama-001', lat: 8.538, lng: -80.7821, zoom: 7 },
   { id: 'mexico-001', lat: 23.6345, lng: -102.5528, zoom: 5 },
   { id: 'colombia-001', lat: 4.5709, lng: -74.2973, zoom: 5 },
+  { id: 'suiza-001', lat: 46.8182, lng: 8.2275, zoom: 5 },
   { id: 'peru-001', lat: -9.19, lng: -75.0152, zoom: 5 },
   { id: 'brasil-001', lat: -14.235, lng: -51.9253, zoom: 4 },
   { id: 'argentina-001', lat: -38.4161, lng: -63.6167, zoom: 4 },

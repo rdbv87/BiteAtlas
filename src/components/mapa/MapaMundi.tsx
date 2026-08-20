@@ -1,44 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { usePaises } from '@/services/hooks/usePaises'
+import { useLandingData } from '@/services/hooks/useLandingData'
 import { getCoordenadasPais } from '@/data/paises-coordenadas'
 import { PanelPais } from './PanelPais'
 import { FichaCultural } from '@/components/fichas/FichaCultural'
-import { platillos } from '@/scripts/data/honduras'
-import type { Pais } from '@/types'
-
-const regionLocations = [
-  {
-    id: 'region-copan-001',
-    name: 'Copán',
-    dish: 'Baleada',
-    recipeId: 'platillo-baleada-001',
-    lat: 14.84,
-    lng: -89.15,
-  },
-  {
-    id: 'region-ceiba-001',
-    name: 'La Ceiba',
-    dish: 'Sopa de Caracol',
-    recipeId: 'platillo-sopa-caracol-001',
-    lat: 15.77,
-    lng: -86.79,
-  },
-  {
-    id: 'region-comayagua-001',
-    name: 'Comayagua',
-    dish: 'Nacatamal',
-    recipeId: 'platillo-nacatamal-001',
-    lat: 14.45,
-    lng: -87.64,
-  },
-]
+import type { Pais, Platillo } from '@/types'
 
 // Fix for default marker icon
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
@@ -75,9 +47,45 @@ function MapController({ selectedPais }: { selectedPais: Pais | null }) {
 }
 
 export function MapaMundi() {
-  const { paises, isLoading } = usePaises()
+  const { paises, recetasPorPais, regionesPorPais, isLoading } = useLandingData()
   const [selectedPais, setSelectedPais] = useState<Pais | null>(null)
-  const [selectedPlatillo, setSelectedPlatillo] = useState<(typeof platillos)[number] | null>(null)
+  const [selectedPlatillo, setSelectedPlatillo] = useState<Platillo | null>(null)
+
+  const paisesConRecetas = useMemo(
+    () => paises.filter((pais) => (recetasPorPais[pais.id]?.length ?? 0) > 0),
+    [paises, recetasPorPais]
+  )
+
+  const regionesConRecetas = useMemo(() => {
+    const locations = new Map<
+      string,
+      { id: string; name: string; dish: string; recipe: Platillo; lat: number; lng: number }
+    >()
+
+    Object.values(recetasPorPais)
+      .flat()
+      .forEach((recipe) => {
+        const region = regionesPorPais[recipe.paisId]?.find(
+          (candidate) => candidate.id === recipe.regionId
+        )
+        const lat = recipe.lat ?? region?.lat
+        const lng = recipe.lng ?? region?.lng
+        const locationId = recipe.lat != null && recipe.lng != null ? recipe.id : region?.id
+
+        if (lat == null || lng == null || !locationId || locations.has(locationId)) return
+
+        locations.set(locationId, {
+          id: locationId,
+          name: region?.nombre ?? 'Ubicación del platillo',
+          dish: recipe.nombre,
+          recipe,
+          lat,
+          lng,
+        })
+      })
+
+    return Array.from(locations.values())
+  }, [recetasPorPais, regionesPorPais])
 
   if (isLoading) {
     return (
@@ -137,7 +145,7 @@ export function MapaMundi() {
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
         <MapController selectedPais={selectedPais} />
-        {paises.map((pais) => {
+        {paisesConRecetas.map((pais) => {
           const coords = getCoordenadasPais(pais.id)
           if (!coords) return null
 
@@ -159,42 +167,40 @@ export function MapaMundi() {
             </Marker>
           )
         })}
-        {paises.some((pais) => pais.id === 'honduras-001') &&
-          regionLocations.map((region) => (
-            <CircleMarker
-              key={region.id}
-              center={[region.lat, region.lng]}
-              radius={8}
-              eventHandlers={{
-                click: () => {
-                  const recipe = platillos.find((platillo) => platillo.id === region.recipeId)
-                  if (recipe) setSelectedPlatillo(recipe)
-                },
-              }}
-              pathOptions={{
-                className: 'recipe-region-marker',
-                color: '#173c3a',
-                fillColor: '#f0a35b',
-                fillOpacity: 0.95,
-                weight: 3,
-              }}
-            >
-              <Popup>
-                <div className="min-w-32 p-1">
-                  <p className="text-[10px] uppercase tracking-[0.16em] text-[#e8754f]">Región</p>
-                  <h3 className="mt-1 font-semibold text-base">{region.name}</h3>
-                  <p className="mt-1 text-xs text-gray-600">Plato asociado: {region.dish}</p>
-                </div>
-              </Popup>
-            </CircleMarker>
-          ))}
+        {regionesConRecetas.map((region) => (
+          <CircleMarker
+            key={region.id}
+            center={[region.lat, region.lng]}
+            radius={8}
+            eventHandlers={{
+              click: () => {
+                setSelectedPlatillo(region.recipe)
+              },
+            }}
+            pathOptions={{
+              className: 'recipe-region-marker',
+              color: '#173c3a',
+              fillColor: '#f0a35b',
+              fillOpacity: 0.95,
+              weight: 3,
+            }}
+          >
+            <Popup>
+              <div className="min-w-32 p-1">
+                <p className="text-[10px] uppercase tracking-[0.16em] text-[#e8754f]">Región</p>
+                <h3 className="mt-1 font-semibold text-base">{region.name}</h3>
+                <p className="mt-1 text-xs text-gray-600">Plato asociado: {region.dish}</p>
+              </div>
+            </Popup>
+          </CircleMarker>
+        ))}
       </MapContainer>
 
       {/* Panel lateral */}
       {selectedPais && (
         <PanelPais
           pais={selectedPais}
-          recetas={selectedPais.id === 'honduras-001' ? platillos : []}
+          recetas={recetasPorPais[selectedPais.id] ?? []}
           onClose={() => setSelectedPais(null)}
           onSelectRecipe={setSelectedPlatillo}
         />

@@ -9,9 +9,13 @@ export function VideoPlayer({ url, fallbackImage, alt = 'Video del platillo' }: 
   const isVimeo = url.includes('vimeo.com')
 
   if (isYouTube) {
-    const videoId = url.includes('youtu.be')
-      ? url.split('/').pop()?.split('?')[0]
-      : url.split('v=')[1]?.split('&')[0]
+    const parsedUrl = new URL(url)
+    const videoId =
+      parsedUrl.hostname === 'youtu.be'
+        ? parsedUrl.pathname.split('/').filter(Boolean)[0]
+        : parsedUrl.pathname.startsWith('/shorts/')
+          ? parsedUrl.pathname.split('/')[2]
+          : parsedUrl.searchParams.get('v')
 
     if (videoId) {
       return (

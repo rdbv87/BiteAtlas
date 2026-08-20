@@ -11,6 +11,10 @@ import type { Platillo } from '@/types'
 type EstadoRevision = 'pendiente' | 'aprobado' | 'rechazado'
 
 async function fetchPlatillosPorEstado(estado: EstadoRevision): Promise<Platillo[]> {
+  if (!firestore) {
+    return []
+  }
+
   const q = query(collection(firestore, 'platillos'), where('estado', '==', estado))
   const snapshot = await getDocs(q)
   return snapshot.docs.map((d) => d.data() as Platillo)
@@ -40,6 +44,10 @@ export function AdminPanel() {
   }, [filtro])
 
   async function actualizarEstado(platilloId: string, nuevoEstado: EstadoRevision) {
+    if (!firestore) {
+      return
+    }
+
     try {
       await updateDoc(doc(firestore, 'platillos', platilloId), {
         estado: nuevoEstado,
