@@ -119,7 +119,7 @@ export function MapaMundi() {
         minZoom={2}
         maxZoom={12}
         className="h-full w-full z-0"
-        zoomControl={true}
+        zoomControl={false}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
