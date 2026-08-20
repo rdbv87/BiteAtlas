@@ -13,6 +13,30 @@ Las búsquedas genéricas y las fotos de stock sin contexto quedan en `pendiente
 automatización puede filtrar candidatos por título, descripción y licencia, pero no
 puede garantizar por sí sola que una foto sea una baleada y no otro plato parecido.
 
+### Preselección automatizada
+
+La preselección reproducible usa la API de [Openverse](https://api.openverse.org/),
+que indexa imágenes con licencia Creative Commons verificable (no scraping de HTML
+ni de buscadores de imágenes):
+
+1. Busca `[plato] Honduras plato` filtrando por `license_type=commercial,modification`.
+2. Descarta resultados sin licencia compatible (`cc0`, `pdm`, `by`, `by-sa`).
+3. Descarta títulos o etiquetas que no contengan todos los términos relevantes del
+   plato, o que mencionen otro país centroamericano (posible plato similar pero
+   distinto).
+4. Devuelve cada candidato con `estado: 'pendiente'`: la automatización nunca marca
+   una imagen como `aprobada`.
+
+Ejecutar:
+
+```bash
+npm run curate:images
+```
+
+El comando falla si no hay ningún candidato verificable para un plato. Una imagen
+solo pasa a `aprobada` después de que una persona confirme visualmente que
+corresponde al plato correcto.
+
 ## YouTube
 
 La selección reproducible usa YouTube Data API v3, no HTML scraping:
