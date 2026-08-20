@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import { firestore } from '@/services/firebase'
 import { RecipeExplorer } from '@/components/fichas/RecipeExplorer'
-import type { Platillo, Region } from '@/types'
+import type { Platillo } from '@/types'
 
 export default function HondurasPage() {
   const [platillos, setPlatillos] = useState<Platillo[]>([])
@@ -19,21 +19,14 @@ export default function HondurasPage() {
       }
 
       try {
-        const snapshot = await getDocs(collection(firestore, 'paises', 'honduras-001', 'regiones'))
-        const regionsData: Region[] = []
-        snapshot.forEach((doc) => regionsData.push(doc.data() as Region))
-
-        // Fetch platillos de cada región
-        const allPlatillos: Platillo[] = []
-        for (const region of regionsData) {
-          const platillosSnap = await getDocs(
-            collection(firestore, 'paises', 'honduras-001', 'regiones', region.id, 'platillos')
+        const snapshot = await getDocs(
+          query(
+            collection(firestore, 'platillos'),
+            where('paisId', '==', 'honduras-001'),
+            where('estado', '==', 'publicado')
           )
-          platillosSnap.forEach((doc) => {
-            allPlatillos.push(doc.data() as Platillo)
-          })
-        }
-        setPlatillos(allPlatillos)
+        )
+        setPlatillos(snapshot.docs.map((doc) => doc.data() as Platillo))
       } catch (err) {
         console.error('Error fetching platillos:', err)
         setPlatillos([])
