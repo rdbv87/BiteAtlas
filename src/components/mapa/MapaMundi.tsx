@@ -89,7 +89,7 @@ export function MapaMundi() {
   }
 
   return (
-    <div className="relative h-screen w-full">
+    <div className="relative h-screen w-full" role="region" aria-label="Mapa culinario interactivo">
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[500] flex items-start justify-between p-4 sm:p-6">
         <div className="pointer-events-auto max-w-sm border border-white/20 bg-[#173c3a]/95 p-4 text-[#f5f1e8] shadow-xl backdrop-blur-md sm:p-5">
           <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.24em] text-[#f0a35b]">

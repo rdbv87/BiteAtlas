@@ -90,7 +90,6 @@ export const platillos: Platillo[] = [
     dificultad: 'facil',
     porciones: 1,
     imagenes: ['https://images.unsplash.com/photo-1565299585323-38d6b0865b47'],
-    video: 'https://www.youtube.com/results?search_query=receta+baleada+hondurena+preparacion',
     contextoHistorico:
       'La baleada se originó en la costa norte de Honduras a principios del siglo XX. Se cree que fue creada por mujeres campesinas que necesitaban un alimento rápido y nutritivo para los trabajadores agrícolas. Su nombre proviene de la acción de "balar" o doblar la tortilla.',
     festividades: ['Fiestas patrias (15 de septiembre)', 'Día de la Raza (12 de octubre)'],
@@ -127,7 +126,6 @@ export const platillos: Platillo[] = [
     dificultad: 'medio',
     porciones: 4,
     imagenes: ['https://images.unsplash.com/photo-1547592166-23ac45744acd'],
-    video: 'https://www.youtube.com/results?search_query=sopa+de+caracol+hondurena+preparacion',
     contextoHistorico:
       'La Sopa de Caracol es un platillo de origen garífuna, una etnia afrodescendiente que habita la costa caribeña de Honduras. Los garífunas son descendientes de africanos y amerindios caribeños, y su gastronomía es considerada Patrimonio Inmaterial de la Humanidad por la UNESCO.',
     festividades: ['Festival de la Ceiba (mayo)', 'Día de los Pueblos Indígenas'],
@@ -164,7 +162,6 @@ export const platillos: Platillo[] = [
     dificultad: 'dificil',
     porciones: 8,
     imagenes: ['https://images.unsplash.com/photo-1504674900247-0877df9cc836'],
-    video: 'https://www.youtube.com/results?search_query=nacatamal+hondureno+preparacion',
     contextoHistorico:
       'El nacatamal es un platillo con raíces precolombinas que ha evolucionado con la influencia española. En Honduras, es tradición preparar nacatamales los domingos y en celebraciones especiales. Cada familia tiene su receta secreta que se transmite de generación en generación.',
     festividades: ['Navidad', 'Año Nuevo', 'Fiestas patronales'],

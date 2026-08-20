@@ -147,19 +147,37 @@ export function FichaCultural({ platillo, isOpen, onClose }: FichaCulturalProps)
                   {activeTab === 'festival' && (
                     <FestividadesSection festividades={platillo.festividades} />
                   )}
-                  {activeTab === 'video' && platillo.video && (
-                    <VideoPlayer
-                      url={platillo.video}
-                      fallbackImage={platillo.imagenes[0]}
-                      alt={`Preparación de ${platillo.nombre}`}
-                    />
+                  {activeTab === 'video' && platillo.videos && platillo.videos.length > 0 && (
+                    <div className="space-y-6">
+                      {platillo.videos.map((video) => (
+                        <div key={video.id}>
+                          <div className="mb-2 flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-[10px] uppercase tracking-[0.18em] text-primary">
+                                {video.tipo === 'short' ? 'Short' : 'Video completo'}
+                              </p>
+                              <h3 className="mt-1 font-semibold leading-tight">{video.titulo}</h3>
+                            </div>
+                            <span className="shrink-0 text-xs text-muted-foreground">
+                              {video.vistas.toLocaleString('es-HN')} vistas
+                            </span>
+                          </div>
+                          <VideoPlayer
+                            url={video.url}
+                            fallbackImage={video.miniatura}
+                            alt={`Preparación de ${platillo.nombre}: ${video.titulo}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   )}
-                  {activeTab === 'video' && !platillo.video && (
+                  {activeTab === 'video' && (!platillo.videos || platillo.videos.length === 0) && (
                     <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-lg bg-muted p-6 text-center">
                       <Play className="h-8 w-8 text-primary" />
-                      <p className="font-semibold">Video en preparación</p>
+                      <p className="font-semibold">Videos en curación</p>
                       <p className="text-sm text-muted-foreground">
-                        Esta receta pronto tendrá una guía audiovisual.
+                        Seleccionaremos un Short y un video completo con evidencia de vistas,
+                        duración y consulta.
                       </p>
                     </div>
                   )}

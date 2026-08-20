@@ -13,6 +13,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "ingest": "tsx src/scripts/ingest-honduras.ts",
+    "curate:youtube": "tsx src/scripts/youtube-curator.ts",
     "lint-staged": "lint-staged",
     "prepare": "husky"
   },

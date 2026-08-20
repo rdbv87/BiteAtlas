@@ -18,6 +18,34 @@ export const CategoriaIngredienteSchema = z.enum([
 
 export const EstadoPlatilloSchema = z.enum(['pendiente', 'aprobado', 'rechazado', 'publicado'])
 
+export const TipoVideoRecetaSchema = z.enum(['short', 'normal'])
+
+export const EstadoImagenRecetaSchema = z.enum(['pendiente', 'aprobada', 'rechazada'])
+
+export const ImagenRecetaSchema = z.object({
+  url: z.string().url(),
+  fuenteUrl: z.string().url(),
+  fuente: z.string().min(1),
+  tituloFuente: z.string().min(1),
+  licencia: z.string().min(1),
+  estado: EstadoImagenRecetaSchema,
+  revisadoEn: z.coerce.date().optional(),
+})
+
+export const VideoRecetaSchema = z.object({
+  id: z.string().min(1),
+  url: z.string().url(),
+  titulo: z.string().min(1),
+  canal: z.string().min(1),
+  miniatura: z.string().url(),
+  tipo: TipoVideoRecetaSchema,
+  duracionSegundos: z.number().int().positive(),
+  vistas: z.number().int().nonnegative(),
+  consulta: z.string().min(1),
+  fuente: z.literal('youtube'),
+  verificadoEn: z.coerce.date(),
+})
+
 // ── Entidades ────────────────────────────────────────────────────────────────
 
 export const PaisSchema = z.object({
@@ -61,9 +89,11 @@ export const PlatilloSchema = z.object({
   dificultad: DificultadSchema,
   porciones: z.number().positive().optional(),
   imagenes: z.array(z.string().url()).min(1),
+  imagenesFuentes: z.array(ImagenRecetaSchema).optional(),
   video: z.string().url().optional(),
   contextoHistorico: z.string().optional(),
   festividades: z.array(z.string()).optional(),
+  videos: z.array(VideoRecetaSchema).max(2).optional(),
   estado: EstadoPlatilloSchema.default('pendiente'),
   contribuidorId: z.string().min(1).optional(),
   createdAt: z.coerce.date(),
@@ -76,6 +106,10 @@ export type Continente = z.infer<typeof ContinenteSchema>
 export type Dificultad = z.infer<typeof DificultadSchema>
 export type CategoriaIngrediente = z.infer<typeof CategoriaIngredienteSchema>
 export type EstadoPlatillo = z.infer<typeof EstadoPlatilloSchema>
+export type TipoVideoReceta = z.infer<typeof TipoVideoRecetaSchema>
+export type VideoReceta = z.infer<typeof VideoRecetaSchema>
+export type EstadoImagenReceta = z.infer<typeof EstadoImagenRecetaSchema>
+export type ImagenReceta = z.infer<typeof ImagenRecetaSchema>
 export type Pais = z.infer<typeof PaisSchema>
 export type Region = z.infer<typeof RegionSchema>
 export type Ingrediente = z.infer<typeof IngredienteSchema>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MapaMundi } from './MapaMundi'
 
 describe('MapaMundi', () => {
@@ -13,16 +13,15 @@ describe('MapaMundi', () => {
     expect(screen.getByText('Cargando mapa del mundo...')).toBeInTheDocument()
   })
 
-  it('renderiza country names cuando hay datos', () => {
+  it('renderiza country names cuando hay datos', async () => {
     render(<MapaMundi />)
-    // Testing that the component renders without crashing
-    expect(screen.getByText(/Honduras|Guatemala|Mexico/)).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText(/Honduras|Guatemala|Mexico/)).toBeInTheDocument())
   })
 
-  it('tiene panel lateral cuando hay un país seleccionado en state', () => {
+  it('tiene panel lateral cuando hay un país seleccionado en state', async () => {
     // Render with external prop not supported - test internal state only
     render(<MapaMundi />)
     // Panel appears when user clicks a marker - test basic rendering
-    expect(screen.getByRole('region')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('region')).toBeInTheDocument())
   })
 })
