@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ArrowUpRight, Clock3 } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { FichaCultural } from './FichaCultural'
 import type { Platillo } from '@/types'
 
@@ -17,10 +18,19 @@ export function RecipeExplorer({ recipes, images }: RecipeExplorerProps) {
     <>
       <div className="grid gap-6 md:grid-cols-3">
         {recipes.map((recipe, index) => (
-          <article key={recipe.id} className="group border-t-2 border-[#173c3a] pt-4">
-            <button
+          <motion.article
+            key={recipe.id}
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ delay: index * 0.08, duration: 0.45 }}
+            whileHover={{ y: -6, rotate: index % 2 === 0 ? -0.6 : 0.6 }}
+            className="group border-t-2 border-[#173c3a] pt-4"
+          >
+            <motion.button
               type="button"
               onClick={() => setSelectedRecipe(recipe)}
+              whileTap={{ scale: 0.98 }}
               className="block w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e8754f]"
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-[#d4ddd1]">
@@ -42,9 +52,9 @@ export function RecipeExplorer({ recipes, images }: RecipeExplorerProps) {
                   <Clock3 className="h-3.5 w-3.5" /> {recipe.tiempoPreparacion} min
                 </span>
               </div>
-            </button>
+            </motion.button>
             <p className="mt-3 text-sm leading-6 text-[#47615a]">{recipe.descripcion}</p>
-          </article>
+          </motion.article>
         ))}
       </div>
 

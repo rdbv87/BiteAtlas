@@ -18,6 +18,8 @@ export default function Home() {
     <main className="overflow-hidden bg-[#f5f1e8] text-[#173c3a]">
       <section className="relative isolate min-h-[720px] bg-[#173c3a] text-[#f5f1e8]">
         <div className="absolute inset-0 -z-10 opacity-30 [background-image:linear-gradient(rgba(245,241,232,.12)_1px,transparent_1px),linear-gradient(90deg,rgba(245,241,232,.12)_1px,transparent_1px)] [background-size:72px_72px]" />
+        <div className="pointer-events-none absolute -right-20 top-20 h-64 w-64 rounded-full border-[18px] border-[#e8754f]/25 sm:right-12" />
+        <div className="pointer-events-none absolute bottom-16 left-[8%] h-3 w-3 animate-bounce rounded-full bg-[#f0a35b] shadow-[0_0_0_10px_rgba(240,163,91,.15)]" />
         <div className="mx-auto grid min-h-[720px] max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-[1.05fr_.95fr] lg:px-10">
           <div className="max-w-2xl">
             <div className="mb-10 flex items-center gap-3 text-xs uppercase tracking-[0.28em] text-[#f0a35b]">
@@ -54,7 +56,7 @@ export default function Home() {
           </div>
 
           <div className="relative mx-auto w-full max-w-lg lg:justify-self-end">
-            <div className="absolute -right-3 -top-5 z-10 flex h-28 w-28 rotate-6 flex-col justify-center bg-[#f0a35b] p-4 text-[#173c3a] shadow-xl sm:-right-7">
+            <div className="sticker-float absolute -right-3 -top-5 z-10 flex h-28 w-28 rotate-6 flex-col justify-center bg-[#f0a35b] p-4 text-[#173c3a] shadow-xl sm:-right-7">
               <span className="text-[10px] uppercase tracking-[0.2em]">En foco</span>
               <strong className="mt-1 font-editorial text-2xl">Honduras</strong>
               <span className="mt-1 text-xs">Caribe · Maíz · Coco</span>
@@ -68,7 +70,7 @@ export default function Home() {
                 className="rounded-[1rem] object-cover p-3"
               />
             </div>
-            <div className="absolute -bottom-5 -left-5 max-w-[230px] bg-[#f5f1e8] p-4 text-[#173c3a] shadow-xl sm:-left-10">
+            <div className="sticker-float-slow absolute -bottom-5 -left-5 max-w-[230px] bg-[#f5f1e8] p-4 text-[#173c3a] shadow-xl sm:-left-10">
               <div className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-[#e8754f]">
                 <MapPinned className="h-4 w-4" /> Costa norte
               </div>
@@ -82,7 +84,7 @@ export default function Home() {
 
       <section className="border-b border-[#173c3a]/15 bg-[#e6eadc]">
         <div className="mx-auto grid max-w-7xl gap-8 px-6 py-8 sm:grid-cols-3 sm:px-10">
-          <div>
+          <div className="group">
             <p className="text-4xl font-editorial">01</p>
             <p className="mt-1 text-sm text-[#47615a]">país en el atlas</p>
           </div>
@@ -103,7 +105,7 @@ export default function Home() {
             <div className="flex items-center gap-3 text-xs uppercase tracking-[0.24em] text-[#e8754f]">
               <Utensils className="h-4 w-4" /> Cuaderno de campo
             </div>
-            <h2 className="mt-5 max-w-lg font-editorial text-5xl leading-[1.02] tracking-[-0.02em] sm:text-6xl">
+            <h2 className="playful-underline mt-5 max-w-lg font-editorial text-5xl leading-[1.02] tracking-[-0.02em] sm:text-6xl">
               Tres formas de contar Honduras.
             </h2>
           </div>
@@ -120,11 +122,11 @@ export default function Home() {
 
       <section className="bg-[#dce5dd] px-6 py-24 sm:px-10 lg:py-32">
         <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1fr_.8fr] lg:items-center">
-          <div>
+          <div className="group">
             <div className="flex items-center gap-3 text-xs uppercase tracking-[0.24em] text-[#e8754f]">
               <Compass className="h-4 w-4" /> La expedición empieza aquí
             </div>
-            <h2 className="mt-5 max-w-2xl font-editorial text-5xl leading-[1.02] tracking-[-0.02em] sm:text-6xl">
+            <h2 className="playful-underline mt-5 max-w-2xl font-editorial text-5xl leading-[1.02] tracking-[-0.02em] sm:text-6xl">
               Sigue el sabor hasta su lugar de origen.
             </h2>
             <p className="mt-6 max-w-xl text-lg leading-8 text-[#47615a]">

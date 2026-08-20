@@ -101,12 +101,13 @@ export function MapaMundi() {
           </p>
         </div>
         <div className="hidden border border-[#173c3a]/15 bg-[#f5f1e8]/95 p-4 text-[#173c3a] shadow-lg backdrop-blur-md sm:block">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-[#47615a]">Leyenda</p>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-[#47615a]">Cómo jugar</p>
           <div className="mt-3 flex items-center gap-2 text-xs">
-            <span className="h-3 w-3 rounded-full bg-[#e8754f]" /> Destino con historias
+            <span className="h-3 w-3 animate-pulse rounded-full bg-[#e8754f]" /> País con historias
           </div>
           <div className="mt-2 flex items-center gap-2 text-xs">
-            <span className="h-3 w-3 rounded-full border-2 border-[#173c3a]" /> Región cartografiada
+            <span className="h-3 w-3 rounded-full border-2 border-[#173c3a] bg-[#f0a35b]" /> Toca
+            una región para abrir su receta
           </div>
         </div>
       </div>
@@ -159,7 +160,13 @@ export function MapaMundi() {
                   if (recipe) setSelectedPlatillo(recipe)
                 },
               }}
-              pathOptions={{ color: '#173c3a', fillColor: '#f0a35b', fillOpacity: 0.95, weight: 3 }}
+              pathOptions={{
+                className: 'recipe-region-marker',
+                color: '#173c3a',
+                fillColor: '#f0a35b',
+                fillOpacity: 0.95,
+                weight: 3,
+              }}
             >
               <Popup>
                 <div className="min-w-32 p-1">
@@ -199,6 +206,21 @@ export function MapaMundi() {
       <style jsx global>{`
         .biteatlas-marker {
           filter: hue-rotate(15deg) saturate(1.5);
+        }
+        .recipe-region-marker {
+          animation: region-pulse 2.4s ease-in-out infinite;
+          cursor: pointer;
+          transform-origin: center;
+        }
+        @keyframes region-pulse {
+          0%,
+          100% {
+            opacity: 0.78;
+          }
+          50% {
+            opacity: 1;
+            filter: drop-shadow(0 0 7px rgba(240, 163, 91, 0.85));
+          }
         }
         .leaflet-popup-content-wrapper {
           border-radius: 0.75rem;
