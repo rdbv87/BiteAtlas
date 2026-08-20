@@ -173,7 +173,14 @@ export function MapaMundi() {
       </MapContainer>
 
       {/* Panel lateral */}
-      {selectedPais && <PanelPais pais={selectedPais} onClose={() => setSelectedPais(null)} />}
+      {selectedPais && (
+        <PanelPais
+          pais={selectedPais}
+          recetas={selectedPais.id === 'honduras-001' ? platillos : []}
+          onClose={() => setSelectedPais(null)}
+          onSelectRecipe={setSelectedPlatillo}
+        />
+      )}
 
       {selectedPlatillo && (
         <FichaCultural
