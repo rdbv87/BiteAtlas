@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -92,8 +94,17 @@ export function MapaMundi() {
     <div className="relative h-screen w-full" role="region" aria-label="Mapa culinario interactivo">
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[500] flex items-start justify-between p-4 sm:p-6">
         <div className="pointer-events-auto max-w-sm border border-white/20 bg-[#173c3a]/95 p-4 text-[#f5f1e8] shadow-xl backdrop-blur-md sm:p-5">
-          <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.24em] text-[#f0a35b]">
-            <span className="h-2 w-2 rounded-full bg-[#f0a35b]" /> Atlas culinario · mapa 01
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.24em] text-[#f0a35b]">
+              <span className="h-2 w-2 rounded-full bg-[#f0a35b]" /> Atlas culinario · mapa 01
+            </div>
+            <Link
+              href="/"
+              aria-label="Volver a la landing"
+              className="inline-flex shrink-0 items-center gap-1 text-xs text-[#d4ddd1] transition-colors hover:text-[#f0a35b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f0a35b]"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" /> Inicio
+            </Link>
           </div>
           <h1 className="mt-2 font-editorial text-2xl sm:text-3xl">El mundo empieza en la mesa.</h1>
           <p className="mt-2 text-xs leading-5 text-[#d4ddd1]">
