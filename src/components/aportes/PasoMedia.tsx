@@ -51,12 +51,7 @@ export function PasoMedia({ form, imageFiles, onFilesChange }: PasoMediaProps) {
       </div>
 
       <div>
-        <UploadImagen
-          userId="preview"
-          onUpload={handleUpload}
-          onDelete={handleDelete}
-          previews={previews}
-        />
+        <UploadImagen onUpload={handleUpload} onDelete={handleDelete} previews={previews} />
       </div>
 
       <div className="space-y-2">

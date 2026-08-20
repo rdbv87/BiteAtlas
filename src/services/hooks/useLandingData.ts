@@ -39,13 +39,15 @@ export function useLandingData() {
         return
       }
 
+      const db = firestore
+
       try {
-        const paisSnapshot = await getDocs(collection(firestore, 'paises'))
+        const paisSnapshot = await getDocs(collection(db, 'paises'))
         const firestorePaises = paisSnapshot.docs.map((doc) => doc.data() as Pais)
         const paisesDisponibles = firestorePaises.length > 0 ? firestorePaises : localPaises
 
         const platilloSnapshot = await getDocs(
-          query(collection(firestore, 'platillos'), where('estado', '==', 'publicado'))
+          query(collection(db, 'platillos'), where('estado', '==', 'publicado'))
         )
         const firestorePlatillos = platilloSnapshot.docs.map((doc) => doc.data() as Platillo)
 
@@ -66,9 +68,7 @@ export function useLandingData() {
               return
             }
 
-            const regionesSnapshot = await getDocs(
-              collection(firestore, 'paises', pais.id, 'regiones')
-            )
+            const regionesSnapshot = await getDocs(collection(db, 'paises', pais.id, 'regiones'))
             regionesPorPaisMap[pais.id] = regionesSnapshot.empty
               ? regionesLocales
               : regionesSnapshot.docs.map((doc) => doc.data() as Region)

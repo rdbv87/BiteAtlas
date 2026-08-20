@@ -74,6 +74,7 @@ export const platillos: Platillo[] = [
   // ── Baleada ──────────────────────────────────────────────────────────────
   {
     id: 'platillo-baleada-001',
+    paisId: 'honduras-001',
     regionId: 'region-copan-001',
     nombre: 'Baleada',
     descripcion:
@@ -135,6 +136,7 @@ export const platillos: Platillo[] = [
   // ── Sopa de Caracol ──────────────────────────────────────────────────────
   {
     id: 'platillo-sopa-caracol-001',
+    paisId: 'honduras-001',
     regionId: 'region-ceiba-001',
     nombre: 'Sopa de Caracol',
     descripcion:
@@ -200,6 +202,7 @@ export const platillos: Platillo[] = [
   // ── Nacatamales ──────────────────────────────────────────────────────────
   {
     id: 'platillo-nacatamal-001',
+    paisId: 'honduras-001',
     regionId: 'region-comayagua-001',
     nombre: 'Nacatamal',
     descripcion:

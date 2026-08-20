@@ -61,6 +61,7 @@ export const ingredientes: Ingrediente[] = [
 export const platillos: Platillo[] = [
   {
     id: 'platillo-bandeja-paisa-001',
+    paisId: 'colombia-001',
     regionId: 'region-antioquia-001',
     nombre: 'Bandeja paisa',
     descripcion:
@@ -94,6 +95,7 @@ export const platillos: Platillo[] = [
   },
   {
     id: 'platillo-ajiaco-bogotano-001',
+    paisId: 'colombia-001',
     regionId: 'region-cundinamarca-001',
     nombre: 'Ajiaco bogotano',
     descripcion:
@@ -126,6 +128,7 @@ export const platillos: Platillo[] = [
   },
   {
     id: 'platillo-arepa-choclo-001',
+    paisId: 'colombia-001',
     regionId: 'region-caribe-colombia-001',
     nombre: 'Arepa de choclo',
     descripcion:

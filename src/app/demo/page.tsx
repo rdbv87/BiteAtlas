@@ -6,6 +6,7 @@ import { Platillo } from '@/types'
 // Datos de ejemplo para la demo
 const platilloEjemplo: Platillo = {
   id: 'demo-001',
+  paisId: 'pais-demo-001',
   regionId: 'region-001',
   nombre: 'Demo Platillo',
   descripcion: 'Un platillo de demostración',

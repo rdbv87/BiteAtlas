@@ -57,6 +57,7 @@ export const ingredientes: Ingrediente[] = [
 export const platillos: Platillo[] = [
   {
     id: 'platillo-fondue-queso-001',
+    paisId: 'suiza-001',
     regionId: 'region-valais-001',
     nombre: 'Fondue de queso',
     descripcion:
@@ -87,6 +88,7 @@ export const platillos: Platillo[] = [
   },
   {
     id: 'platillo-rosti-001',
+    paisId: 'suiza-001',
     regionId: 'region-berna-001',
     nombre: 'Rösti',
     descripcion:
@@ -117,6 +119,7 @@ export const platillos: Platillo[] = [
   },
   {
     id: 'platillo-zurcher-geschnetzeltes-001',
+    paisId: 'suiza-001',
     regionId: 'region-zurich-001',
     nombre: 'Zürcher Geschnetzeltes',
     descripcion:
