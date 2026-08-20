@@ -7,12 +7,35 @@ import 'leaflet/dist/leaflet.css'
 import { usePaises } from '@/services/hooks/usePaises'
 import { getCoordenadasPais } from '@/data/paises-coordenadas'
 import { PanelPais } from './PanelPais'
+import { FichaCultural } from '@/components/fichas/FichaCultural'
+import { platillos } from '@/scripts/data/honduras'
 import type { Pais } from '@/types'
 
 const regionLocations = [
-  { id: 'region-copan-001', name: 'Copán', dish: 'Baleada', lat: 14.84, lng: -89.15 },
-  { id: 'region-ceiba-001', name: 'La Ceiba', dish: 'Sopa de Caracol', lat: 15.77, lng: -86.79 },
-  { id: 'region-comayagua-001', name: 'Comayagua', dish: 'Nacatamal', lat: 14.45, lng: -87.64 },
+  {
+    id: 'region-copan-001',
+    name: 'Copán',
+    dish: 'Baleada',
+    recipeId: 'platillo-baleada-001',
+    lat: 14.84,
+    lng: -89.15,
+  },
+  {
+    id: 'region-ceiba-001',
+    name: 'La Ceiba',
+    dish: 'Sopa de Caracol',
+    recipeId: 'platillo-sopa-caracol-001',
+    lat: 15.77,
+    lng: -86.79,
+  },
+  {
+    id: 'region-comayagua-001',
+    name: 'Comayagua',
+    dish: 'Nacatamal',
+    recipeId: 'platillo-nacatamal-001',
+    lat: 14.45,
+    lng: -87.64,
+  },
 ]
 
 // Fix for default marker icon
@@ -52,6 +75,7 @@ function MapController({ selectedPais }: { selectedPais: Pais | null }) {
 export function MapaMundi() {
   const { paises, isLoading } = usePaises()
   const [selectedPais, setSelectedPais] = useState<Pais | null>(null)
+  const [selectedPlatillo, setSelectedPlatillo] = useState<(typeof platillos)[number] | null>(null)
 
   if (isLoading) {
     return (
@@ -129,6 +153,12 @@ export function MapaMundi() {
               key={region.id}
               center={[region.lat, region.lng]}
               radius={8}
+              eventHandlers={{
+                click: () => {
+                  const recipe = platillos.find((platillo) => platillo.id === region.recipeId)
+                  if (recipe) setSelectedPlatillo(recipe)
+                },
+              }}
               pathOptions={{ color: '#173c3a', fillColor: '#f0a35b', fillOpacity: 0.95, weight: 3 }}
             >
               <Popup>
@@ -144,6 +174,14 @@ export function MapaMundi() {
 
       {/* Panel lateral */}
       {selectedPais && <PanelPais pais={selectedPais} onClose={() => setSelectedPais(null)} />}
+
+      {selectedPlatillo && (
+        <FichaCultural
+          platillo={selectedPlatillo}
+          isOpen={true}
+          onClose={() => setSelectedPlatillo(null)}
+        />
+      )}
 
       <div className="pointer-events-none absolute bottom-4 left-4 z-[500] border border-white/20 bg-[#173c3a]/90 px-4 py-3 text-[#f5f1e8] shadow-lg backdrop-blur-md sm:bottom-6 sm:left-6">
         <p className="text-[10px] uppercase tracking-[0.2em] text-[#f0a35b]">Punto de partida</p>
