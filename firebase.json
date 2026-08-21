@@ -4,5 +4,10 @@
   },
   "storage": {
     "rules": "storage.rules"
+  },
+  "hosting": {
+    "source": ".",
+    "site": "bite-atlas-world",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
   }
 }

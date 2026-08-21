@@ -18,6 +18,9 @@ interface FichaCulturalProps {
 
 type TabId = 'receta' | 'historia' | 'festival' | 'video'
 
+// FichaCultural: Modal interactivo que presenta la receta completa con multiples secciones.
+// Secciones disponibles: Receta (ingredientes + instrucciones), Historia, Festividades, Video
+// Animaciones: Usa framer-motion para transiciones suaves entre tabs
 const tabs: { id: TabId; label: string }[] = [
   { id: 'receta', label: 'Receta' },
   { id: 'historia', label: 'Historia' },

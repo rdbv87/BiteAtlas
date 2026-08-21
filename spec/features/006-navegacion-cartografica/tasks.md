@@ -25,10 +25,9 @@
 
 ### Datos de Países
 
-- [ ] Crear `src/data/paises-coordenadas.ts`
-- [ ] Agregar coordenadas para países principales
-- [ ] Empezar con Honduras (región piloto)
-- [ ] Agregar 5-10 países más
+- [x] Guardar el encuadre de mapa (`lat`, `lng`, `zoom`) en el documento del país en Firestore
+- [x] Resolver el encuadre desde `src/lib/atlas.ts`, con el centro de las recetas como respaldo
+- [x] Mostrar en el mapa solo los países que tienen recetas publicadas
 
 ### Hooks de Datos
 

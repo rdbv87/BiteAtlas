@@ -2,6 +2,19 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
+// Componente Card: Contenedor principal para tarjetas con estilos consistentes.
+// Incluye: fondo, borde suave, padding, y redondeo de esquinas.
+// Soporta dos tamaños: 'default' (spacing 1rem) y 'sm' (spacing 0.75rem).
+//
+// Composicion tipica:
+// <Card>
+//   <CardHeader>
+//     <CardTitle>Titulo</CardTitle>
+//     <CardDescription>Descripcion</CardDescription>
+//   </CardHeader>
+//   <CardContent>Contenido principal</CardContent>
+//   <CardFooter>Acciones o info adicional</CardFooter>
+// </Card>
 function Card({
   className,
   size = 'default',
@@ -20,6 +33,8 @@ function Card({
   )
 }
 
+// CardHeader: Encabezado de la tarjeta con titulo, descripcion y acciones opcionales.
+// Auto-layout que posiciona acciones a la derecha si existen.
 function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
@@ -33,6 +48,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
+// CardTitle: Titulo prominente dentro del CardHeader. Font size se adapta al tamaño de la tarjeta.
 function CardTitle({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
@@ -46,6 +62,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
+// CardDescription: Texto descriptivo secundario, generalmente bajo el titulo.
 function CardDescription({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
@@ -56,6 +73,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
+// CardAction: Contenedor para acciones (botones, menus) en la esquina superior derecha del header.
 function CardAction({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
@@ -66,12 +84,15 @@ function CardAction({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
+// CardContent: Area principal donde va el contenido de la tarjeta (texto, formularios, etc.).
 function CardContent({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div data-slot="card-content" className={cn('px-(--card-spacing)', className)} {...props} />
   )
 }
 
+// CardFooter: Area inferior de la tarjeta con fondo muted, tipicamente para botones o info adicional.
+// Tiene borde superior para separacion visual del contenido principal.
 function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div

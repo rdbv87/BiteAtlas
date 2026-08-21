@@ -1,5 +1,10 @@
 import type { ZodError, ZodIssue } from 'zod'
 
+// Error personalizado para validaciones con Zod.
+// Incluye: mensaje, nombre del campo, y array de todas las issues de Zod.
+// Metodos:
+// - fromZodError(): Convierte un ZodError a ValidationError con primer campo/mensaje
+// - toJSON(): Serializa para respuestas HTTP o logging
 export class ValidationError extends Error {
   public readonly field: string
   public readonly issues: ZodIssue[]

@@ -3,6 +3,21 @@ import { Input as InputPrimitive } from '@base-ui/react/input'
 
 import { cn } from '@/lib/utils'
 
+// Componente Input reutilizable con estilos Tailwind personalizados.
+// Wrapper alrededor de @base-ui/react/input.
+//
+// Características:
+// - Soporta validation states (aria-invalid para mostrar errores)
+// - Responsive: tamaño de texto se adapta en mobile vs desktop
+// - Estados: focus, disabled, error (invalid)
+// - Soporta tipo file con estilos especiales
+// - Dark mode compatible
+//
+// Props: Acepta todos los props HTML estándar de input (<input> props)
+//
+// Ejemplos:
+// <Input placeholder=\"Name\" />
+// <Input type=\"email\" aria-invalid={hasError} />
 function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
   return (
     <InputPrimitive

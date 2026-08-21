@@ -4,6 +4,9 @@ import { getAuth, type Auth } from 'firebase/auth'
 import { getFirestore, type Firestore } from 'firebase/firestore'
 import { getStorage, type FirebaseStorage } from 'firebase/storage'
 
+// Configuracion de Firebase cargada desde variables de entorno.
+// Las claves estan prefijadas con NEXT_PUBLIC_ para ser accesibles en el cliente.
+// Se valida que todas las claves requeridas esten presentes antes de inicializar.
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? '',
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? '',
@@ -40,10 +43,16 @@ let auth: Auth | null = null
 let storage: FirebaseStorage | null = null
 let analytics: Analytics | null = null
 
+// Inicializa los servicios de Firebase (app, Firestore, Auth, Storage, Analytics).
+// Validaciones:
+// - Verifica que todas las variables de entorno requeridas esten configuradas
+// - Evita inicializar multiples instancias (singleton pattern)
+// - Solo inicializa Auth y Storage en el navegador (SSR-safe)
+// - Analytics solo se activa en produccion si esta explicitamente habilitado
 function initializeFirebase() {
   if (!isFirebaseConfigured) {
     console.warn(
-      `Firebase no está configurado. Variables faltantes: ${missingFirebaseConfig.join(', ')}`
+      `Firebase no esta configurado. Variables faltantes: ${missingFirebaseConfig.join(', ')}`
     )
     return { app: null, db: null, auth: null, storage: null, analytics: null }
   }

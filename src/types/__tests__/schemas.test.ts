@@ -15,38 +15,42 @@ import { ValidationError } from '../../errors/validation-error'
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 
 const validPais = {
-  id: 'honduras-001',
-  nombre: 'Honduras',
-  codigoISO: 'HN',
-  continente: 'america' as const,
-  descripcion: 'País centroamericano',
+  id: 'japon-001',
+  nombre: 'Japón',
+  codigoISO: 'JP',
+  continente: 'asia' as const,
+  descripcion: 'Archipiélago del este de Asia',
+  lat: 36.2,
+  lng: 138.25,
+  zoom: 5,
 }
 
 const validRegion = {
-  id: 'region-copan-001',
-  paisId: 'honduras-001',
-  nombre: 'Copán',
-  descripcion: 'Región occidental',
+  id: 'japon-001-region-1',
+  paisId: 'japon-001',
+  nombre: 'Kioto',
+  descripcion: 'Región de Kansai',
 }
 
 const validIngrediente = {
-  id: 'ing-frijoles-001',
-  nombre: 'Frijoles',
+  id: 'ing-miso-001',
+  nombre: 'Miso',
   categoria: 'grano' as const,
 }
 
 const validIngredientePlatillo = {
-  ingredienteId: 'ing-frijoles-001',
-  cantidad: '1/2',
-  unidad: 'taza',
+  ingredienteId: 'ing-miso-001',
+  cantidad: '2',
+  unidad: 'cucharadas',
 }
 
 const validPlatillo = {
-  id: 'platillo-baleada-001',
-  regionId: 'region-copan-001',
-  nombre: 'Baleada',
-  descripcion: 'Platillo típico hondureño',
-  instrucciones: ['Calentar la tortilla', 'Agregar frijoles'],
+  id: 'platillo-sopa-miso-001',
+  paisId: 'japon-001',
+  regionId: 'japon-001-region-1',
+  nombre: 'Sopa de miso',
+  descripcion: 'Caldo dashi con pasta de miso y tofu',
+  instrucciones: ['Calentar el dashi', 'Disolver el miso'],
   ingredientes: [validIngredientePlatillo],
   dificultad: 'facil' as const,
   imagenes: ['https://example.com/image.jpg'],
@@ -98,9 +102,12 @@ describe('CategoriaIngredienteSchema', () => {
 describe('EstadoPlatilloSchema', () => {
   it('acepta estados válidos', () => {
     expect(EstadoPlatilloSchema.parse('pendiente')).toBe('pendiente')
-    expect(EstadoPlatilloSchema.parse('aprobado')).toBe('aprobado')
     expect(EstadoPlatilloSchema.parse('rechazado')).toBe('rechazado')
     expect(EstadoPlatilloSchema.parse('publicado')).toBe('publicado')
+  })
+
+  it('rechaza estados de moderación intermedios que no son visibles', () => {
+    expect(() => EstadoPlatilloSchema.parse('aprobado')).toThrow()
   })
 })
 
@@ -109,8 +116,20 @@ describe('EstadoPlatilloSchema', () => {
 describe('PaisSchema', () => {
   it('acepta un país válido', () => {
     const result = PaisSchema.parse(validPais)
-    expect(result.nombre).toBe('Honduras')
-    expect(result.codigoISO).toBe('HN')
+    expect(result.nombre).toBe('Japón')
+    expect(result.codigoISO).toBe('JP')
+  })
+
+  it('conserva el encuadre de mapa del país', () => {
+    const result = PaisSchema.parse(validPais)
+    expect(result.lat).toBe(36.2)
+    expect(result.lng).toBe(138.25)
+    expect(result.zoom).toBe(5)
+  })
+
+  it('rechaza coordenadas fuera de rango', () => {
+    expect(() => PaisSchema.parse({ ...validPais, lat: 120 })).toThrow()
+    expect(() => PaisSchema.parse({ ...validPais, lng: -200 })).toThrow()
   })
 
   it('rechaza país sin nombre', () => {
@@ -140,8 +159,8 @@ describe('PaisSchema', () => {
 describe('RegionSchema', () => {
   it('acepta una región válida', () => {
     const result = RegionSchema.parse(validRegion)
-    expect(result.nombre).toBe('Copán')
-    expect(result.paisId).toBe('honduras-001')
+    expect(result.nombre).toBe('Kioto')
+    expect(result.paisId).toBe('japon-001')
   })
 
   it('rechaza región sin paisId', () => {
@@ -152,7 +171,7 @@ describe('RegionSchema', () => {
 describe('IngredienteSchema', () => {
   it('acepta un ingrediente válido', () => {
     const result = IngredienteSchema.parse(validIngrediente)
-    expect(result.nombre).toBe('Frijoles')
+    expect(result.nombre).toBe('Miso')
     expect(result.categoria).toBe('grano')
   })
 
@@ -164,8 +183,8 @@ describe('IngredienteSchema', () => {
 describe('IngredientePlatilloSchema', () => {
   it('acepta ingrediente-platillo válido', () => {
     const result = IngredientePlatilloSchema.parse(validIngredientePlatillo)
-    expect(result.cantidad).toBe('1/2')
-    expect(result.unidad).toBe('taza')
+    expect(result.cantidad).toBe('2')
+    expect(result.unidad).toBe('cucharadas')
   })
 
   it('rechaza ingrediente-platillo sin cantidad', () => {
@@ -178,7 +197,7 @@ describe('IngredientePlatilloSchema', () => {
 describe('PlatilloSchema', () => {
   it('acepta un platillo válido', () => {
     const result = PlatilloSchema.parse(validPlatillo)
-    expect(result.nombre).toBe('Baleada')
+    expect(result.nombre).toBe('Sopa de miso')
     expect(result.instrucciones).toHaveLength(2)
   })
 
@@ -215,6 +234,7 @@ describe('PlatilloSchema', () => {
   it('usa estado por defecto "pendiente"', () => {
     const platilloSinEstado = {
       id: validPlatillo.id,
+      paisId: validPlatillo.paisId,
       regionId: validPlatillo.regionId,
       nombre: validPlatillo.nombre,
       descripcion: validPlatillo.descripcion,

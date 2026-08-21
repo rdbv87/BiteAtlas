@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { UploadImagen } from './UploadImagen'
 import type { FormData } from './FormularioAporte'
 
+// Paso 4: Upload de imagenes (requerido) y video URL (opcional)
 interface PasoMediaProps {
   form: UseFormReturn<FormData>
   imageFiles: File[]

@@ -8,6 +8,7 @@ import { useLandingData } from '@/services/hooks/useLandingData'
 import { Plus, Trash2 } from 'lucide-react'
 import type { FormData } from './FormularioAporte'
 
+// Paso 5: Informacion cultural - contexto historico, variante de otra receta, festividades asociadas
 interface PasoCulturalProps {
   form: UseFormReturn<FormData>
 }
@@ -24,7 +25,7 @@ const textareaClassName =
 export function PasoCultural({ form }: PasoCulturalProps) {
   const { register, getValues, setValue, watch } = form
   const [festividades, setFestividades] = useState<string[]>(getValues('festividades') || [])
-  const { recetasPorPais } = useLandingData()
+  const { recetasPorPais, isLoading, error } = useLandingData()
   const paisId = watch('paisId')
   const varianteDeId = watch('varianteDeId')
 
@@ -70,9 +71,11 @@ export function PasoCultural({ form }: PasoCulturalProps) {
           {...register('varianteDeId')}
           value={varianteDeId ?? ''}
           className={selectClassName}
-          disabled={!paisId || recetasDisponibles.length === 0}
+          disabled={!paisId || isLoading || !!error || recetasDisponibles.length === 0}
         >
-          <option value="">Es una receta original</option>
+          <option value="">
+            {isLoading ? 'Cargando recetas publicadas...' : 'Es una receta original'}
+          </option>
           {recetasDisponibles.map((platillo) => (
             <option key={platillo.id} value={platillo.id}>
               {platillo.nombre}
@@ -80,8 +83,9 @@ export function PasoCultural({ form }: PasoCulturalProps) {
           ))}
         </select>
         <p className="text-xs text-[#47615a]">
-          Si esta receta es una variación de una ya publicada en el mismo país, puedes asociarla
-          aquí.
+          {error
+            ? 'No se pudieron cargar recetas publicadas desde Firestore.'
+            : 'Si esta receta es una variación de una ya publicada en el mismo país, puedes asociarla aquí.'}
         </p>
       </div>
 

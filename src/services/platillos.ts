@@ -29,6 +29,16 @@ interface CreatePlatilloData {
   festividades?: string[]
 }
 
+// Crea un nuevo platillo en Firestore con sus imagenes asociadas.
+// Proceso:
+// 1. Sube todas las imagenes a Firebase Storage (en paralelo)
+// 2. Genera un ID unico para el platillo
+// 3. Crea el documento en Firestore con estado = 'pendiente' (requiere moderacion)
+// 4. Registra timestamps de creacion y contribuidor
+// Notas:
+// - Las coordenadas (lat/lng) son opcionales (para platillos sin ubicacion geografica)
+// - varianteDeId, video y contextoHistorico son opcionales
+// - Se genera UUID si esta disponible en el navegador; fallback a timestamp + random
 export async function createPlatillo(data: CreatePlatilloData, userId: string, files: File[]) {
   if (!firestore) {
     throw new Error('Firestore no está inicializado')
@@ -69,6 +79,17 @@ export async function createPlatillo(data: CreatePlatilloData, userId: string, f
   await addDoc(collection(firestore, 'platillos'), platillo)
 }
 
+// Actualiza un platillo existente en Firestore con nuevas imagenes.
+// Proceso:
+// 1. Sube nuevas imagenes a Storage (en paralelo)
+// 2. Filtra las imagenes existentes que NO sean blobs temporales (blob:// URLs)
+// 3. Combina imagenes existentes + nuevas subidas
+// 4. Actualiza el documento en Firestore (sin cambiar estado, requiere aprobacion manual)
+// 5. Limpia coordenadas si no estan presentes (deleteField)
+// Notas:
+// - blob: URLs son imagenes pre-cargadas en el formulario, no son persistentes
+// - El estado vuelve a 'pendiente' tras actualizacion (requiere re-moderacion)
+// - No se puede actualizar el estado del platillo con esta funcion (solo admin puede)
 export async function updatePlatillo(
   platilloId: string,
   data: CreatePlatilloData & { imagenes: string[] },

@@ -8,7 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CheckCircle, XCircle, Clock, Eye } from 'lucide-react'
 import type { Platillo } from '@/types'
 
-type EstadoRevision = 'pendiente' | 'aprobado' | 'rechazado'
+// AdminPanel: Panel de moderacion para revisar platillos (pendiente -> publicado/rechazado)
+// Muestra: Platillos por estado (pendiente, publicado, rechazado) con acciones de moderacion
+type EstadoRevision = 'pendiente' | 'publicado' | 'rechazado'
 
 async function fetchPlatillosPorEstado(estado: EstadoRevision): Promise<Platillo[]> {
   if (!firestore) {
@@ -17,7 +19,7 @@ async function fetchPlatillosPorEstado(estado: EstadoRevision): Promise<Platillo
 
   const q = query(collection(firestore, 'platillos'), where('estado', '==', estado))
   const snapshot = await getDocs(q)
-  return snapshot.docs.map((d) => d.data() as Platillo)
+  return snapshot.docs.map((document) => ({ ...document.data(), id: document.id }) as Platillo)
 }
 
 export function AdminPanel() {
@@ -61,7 +63,7 @@ export function AdminPanel() {
 
   const filtros: { id: EstadoRevision; label: string; icon: React.ReactNode }[] = [
     { id: 'pendiente', label: 'Pendientes', icon: <Clock className="w-4 h-4" /> },
-    { id: 'aprobado', label: 'Aprobados', icon: <CheckCircle className="w-4 h-4" /> },
+    { id: 'publicado', label: 'Publicados', icon: <CheckCircle className="w-4 h-4" /> },
     { id: 'rechazado', label: 'Rechazados', icon: <XCircle className="w-4 h-4" /> },
   ]
 
@@ -117,11 +119,11 @@ export function AdminPanel() {
                     <>
                       <Button
                         size="sm"
-                        onClick={() => actualizarEstado(platillo.id, 'aprobado')}
+                        onClick={() => actualizarEstado(platillo.id, 'publicado')}
                         className="gap-1"
                       >
                         <CheckCircle className="w-4 h-4" />
-                        Aprobar
+                        Publicar
                       </Button>
                       <Button
                         size="sm"

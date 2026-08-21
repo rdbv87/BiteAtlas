@@ -24,6 +24,7 @@
 - [ ] Campo: Descripción
 - [ ] Campo: Selección de país
 - [ ] Campo: Selección de región
+- [x] Campo: Ubicación exacta en el mapa (obligatoria, coloca la receta en el atlas)
 - [ ] Campo: Dificultad
 - [ ] Campo: Tiempo de preparación
 

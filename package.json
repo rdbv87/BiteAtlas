@@ -12,9 +12,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,mdx}\"",
     "test": "vitest",
     "test:run": "vitest run",
-    "ingest": "tsx src/scripts/ingest-honduras.ts",
-    "curate:youtube": "tsx src/scripts/youtube-curator.ts",
-    "curate:images": "tsx src/scripts/image-curator.ts",
+    "seed": "tsx src/scripts/seed-atlas.ts",
+    "purge:seed": "tsx src/scripts/purge-seed-data.ts",
     "lint-staged": "lint-staged",
     "prepare": "husky"
   },

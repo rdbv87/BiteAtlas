@@ -1,20 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { collection, getDocs, query, where } from 'firebase/firestore'
 import { firestore } from '@/services/firebase'
-import {
-  canUseFirestoreReads,
-  disableFirestoreReads,
-  isMissingDefaultFirestoreDatabase,
-} from '@/services/firestore-read-guard'
-import {
-  localPaises,
-  recetasPorPais as recetasPorPaisLocal,
-  regionesPorPais as regionesPorPaisLocal,
-} from '@/scripts/data'
 import type { Pais, Platillo, Region } from '@/types'
 
+// Hook que obtiene todos los datos necesarios para la pagina de landing.
+// Datos cargados:
+// - paises: catalogo geografico completo (necesario para el formulario de aportes)
+// - paisesConRecetas: unicos que se muestran en la landing y el mapa
+// - recetasPorPais: platillos agrupados por pais (solo los publicados)
+// - regionesPorPais: regiones por pais desde Firestore
 export function useLandingData() {
   const [paises, setPaises] = useState<Pais[]>([])
   const [recetasPorPais, setRecetasPorPais] = useState<Record<string, Platillo[]>>({})
@@ -25,16 +21,9 @@ export function useLandingData() {
   useEffect(() => {
     let cancelled = false
 
-    const setLocalFallback = () => {
-      if (cancelled) return
-      setPaises(localPaises)
-      setRecetasPorPais(recetasPorPaisLocal)
-      setRegionesPorPais(regionesPorPaisLocal)
-    }
-
     async function fetchLandingData() {
-      if (!firestore || !canUseFirestoreReads()) {
-        setLocalFallback()
+      if (!firestore) {
+        setError(new Error('Firebase no está configurado para leer datos del atlas.'))
         setIsLoading(false)
         return
       }
@@ -43,53 +32,55 @@ export function useLandingData() {
 
       try {
         const paisSnapshot = await getDocs(collection(db, 'paises'))
-        const firestorePaises = paisSnapshot.docs.map((doc) => doc.data() as Pais)
-        const paisesDisponibles = firestorePaises.length > 0 ? firestorePaises : localPaises
+        const firestorePaises = paisSnapshot.docs.map(
+          (document) =>
+            ({
+              ...document.data(),
+              id: document.id,
+            }) as Pais
+        )
 
         const platilloSnapshot = await getDocs(
           query(collection(db, 'platillos'), where('estado', '==', 'publicado'))
         )
-        const firestorePlatillos = platilloSnapshot.docs.map((doc) => doc.data() as Platillo)
+        const firestorePlatillos = platilloSnapshot.docs.map(
+          (document) =>
+            ({
+              ...document.data(),
+              id: document.id,
+            }) as Platillo
+        )
 
         const groupedRecetas: Record<string, Platillo[]> = {}
         firestorePlatillos.forEach((platillo) => {
-          const list = groupedRecetas[platillo.paisId] ?? []
-          list.push(platillo)
-          groupedRecetas[platillo.paisId] = list
+          const recipes = groupedRecetas[platillo.paisId] ?? []
+          groupedRecetas[platillo.paisId] = [...recipes, platillo]
         })
 
         const regionesPorPaisMap: Record<string, Region[]> = {}
         await Promise.all(
-          paisesDisponibles.map(async (pais) => {
-            const regionesLocales = regionesPorPaisLocal[pais.id] ?? []
-
-            if (firestorePaises.length === 0) {
-              regionesPorPaisMap[pais.id] = regionesLocales
-              return
-            }
-
+          firestorePaises.map(async (pais) => {
             const regionesSnapshot = await getDocs(collection(db, 'paises', pais.id, 'regiones'))
-            regionesPorPaisMap[pais.id] = regionesSnapshot.empty
-              ? regionesLocales
-              : regionesSnapshot.docs.map((doc) => doc.data() as Region)
+            regionesPorPaisMap[pais.id] = regionesSnapshot.docs.map(
+              (document) =>
+                ({
+                  paisId: pais.id,
+                  ...document.data(),
+                  id: document.id,
+                }) as Region
+            )
           })
         )
 
         if (!cancelled) {
-          setPaises(paisesDisponibles)
+          setPaises(firestorePaises)
           setRecetasPorPais(groupedRecetas)
           setRegionesPorPais(regionesPorPaisMap)
+          setError(null)
         }
       } catch (err) {
         if (!cancelled) {
-          if (isMissingDefaultFirestoreDatabase(err)) {
-            disableFirestoreReads()
-          } else {
-            console.warn(
-              'No se pudo cargar datos de la landing desde Firestore; usando dataset local.'
-            )
-          }
-          setLocalFallback()
+          console.warn('No se pudo cargar datos de la landing desde Firestore.', err)
           setError(err instanceof Error ? err : new Error('Error desconocido'))
         }
       } finally {
@@ -106,5 +97,13 @@ export function useLandingData() {
     }
   }, [])
 
-  return { paises, recetasPorPais, regionesPorPais, isLoading, error }
+  const paisesConRecetas = useMemo(
+    () =>
+      paises
+        .filter((pais) => (recetasPorPais[pais.id]?.length ?? 0) > 0)
+        .sort((a, b) => a.nombre.localeCompare(b.nombre)),
+    [paises, recetasPorPais]
+  )
+
+  return { paises, paisesConRecetas, recetasPorPais, regionesPorPais, isLoading, error }
 }

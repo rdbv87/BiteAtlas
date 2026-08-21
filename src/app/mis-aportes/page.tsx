@@ -14,7 +14,6 @@ import type { Platillo } from '@/types'
 
 const estadoLabels: Record<Platillo['estado'], string> = {
   pendiente: 'Pendiente de revisión',
-  aprobado: 'Aprobado',
   publicado: 'Publicado',
   rechazado: 'Rechazado',
 }

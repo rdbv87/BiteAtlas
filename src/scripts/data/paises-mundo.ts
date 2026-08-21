@@ -860,14 +860,8 @@ const paisesMundoSeeds: PaisMundoSeed[] = [
     regiones: ['Praga', 'Brno', 'Ostrava'],
   },
   {
-    nombre: 'República del Congo',
-    codigoISO: 'CD',
-    continente: 'africa',
-    regiones: ['Kinshasa', 'Brazzaville', 'Pointe-Noire'],
-  },
-  {
     nombre: 'República Democrática del Congo',
-    codigoISO: 'CG',
+    codigoISO: 'CD',
     continente: 'africa',
     regiones: ['Kinshasa', 'Lubumbashi', 'Goma'],
   },
@@ -1138,6 +1132,256 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
 
+const buildPaisDescripcion = (nombre: string, continente: Continente): string => {
+  const frasesPorContinente: Record<Continente, string> = {
+    america:
+      'Se basa en maíz, tubérculos, carnes locales, frutas tropicales y la mezcla de influencias indígenas, africanas y europeas que definen una cocina de mercado, festival y hogar.',
+    europa:
+      'Se apoya en cereales, legumbres, hierbas aromáticas, quesos, pescados y recetas de temporada que reflejan tradición, sazón y adaptación regional.',
+    asia: 'Se construye alrededor del arroz, salsas fermentadas, especias, sopas, verduras y técnicas de salteado, hervido y cocción lenta que equilibran dulzor, acidez y calor.',
+    africa:
+      'Se fundamenta en cereales, raíces, verduras, cacao, pescado y carnes locales, con salsas especiadas y preparaciones colectivas que celebran la comunidad y la tierra.',
+    oceania:
+      'Se apoya en raíces tropicales, mariscos, frutas locales y técnicas de asado y cocción a fuego abierto que conectan la comida con la costa y la sabana.',
+  }
+
+  const excepciones: Record<string, string> = {
+    Mexico:
+      'Se basa en maíz, chiles, caldos, tortillas y sabores intensos que combinan tradición indígena, mestiza y regional.',
+    Argentina:
+      'Se apoya en la carne, el asado, los granos y las carnes del campo, con una cocina de fuego, reunión y tradición rural.',
+    Brasil:
+      'Se construye sobre el arroz, la mandioca, el pescado, los frutos tropicales y una mezcla de costumbres indígenas, africanas y europeas.',
+    Colombia:
+      'Se apoya en maíz, arroz, plátano, cacao y carnes, con una cocina que enlaza montañas, costa y selva.',
+    Peru: 'Se inspira en la diversidad agraria del país: maíz, papa, ají, mariscos y productos de la sierra, costa y selva.',
+    Chile:
+      'Se caracteriza por pescados, mariscos, legumbres, papas y una cocina de costa, valle y montaña muy arraigada a la temporada.',
+    España:
+      'Se basa en oliva, pan, legumbres, pescados, carnes y técnicas de cocina de pueblo que marcan una identidad muy regional.',
+    Italia:
+      'Se apoya en pasta, aceite de oliva, tomates, hierbas, queso y cocina de temporada con fuerte identidad regional.',
+    Francia:
+      'Se fundamenta en mantequilla, pan, vinos, verduras de huerta, quesos y platos de tradición doméstica y bistro.',
+    Japon:
+      'Se construye sobre arroz, pescado, soja, algas y técnicas precisas de equilibrio, umami y sazón sutil.',
+    China:
+      'Se apoya en arroz, soja, verduras, cerdo, pollo y salsas fermentadas, con un equilibrio de textura, aroma y sazón.',
+    India:
+      'Se basa en arroz, legumbres, especias, yogur y técnicas de cocción que dan lugar a platos muy aromáticos y regionales.',
+    Tailandia:
+      'Se apoya en arroz, coco, hierbas frescas, cítricos y sabores picantes, ácidos y dulces muy equilibrados.',
+    Vietnam:
+      'Se caracteriza por arroz, hierbas frescas, pescado, brotes y cuencos aromáticos con un equilibrio nítido entre dulce, salado y ácido.',
+  }
+
+  const descripcionExcepcion = excepciones[nombre]
+  if (descripcionExcepcion) {
+    return `Paisaje culinario de ${nombre}: ${descripcionExcepcion}`
+  }
+
+  return `Paisaje culinario de ${nombre}. ${frasesPorContinente[continente]}`
+}
+
+// Centro aproximado y nivel de zoom con el que el mapa encuadra cada país.
+const encuadrePorISO: Record<string, [lat: number, lng: number, zoom: number]> = {
+  AD: [42.55, 1.6, 10],
+  AE: [23.42, 53.85, 6],
+  AF: [33.94, 67.71, 5],
+  AG: [17.06, -61.8, 10],
+  AL: [41.15, 20.17, 7],
+  AM: [40.07, 45.04, 7],
+  AO: [-11.2, 17.87, 5],
+  AR: [-38.42, -63.62, 4],
+  AT: [47.52, 14.55, 6],
+  AU: [-25.27, 133.78, 4],
+  AZ: [40.14, 47.58, 7],
+  BA: [43.92, 17.68, 7],
+  BB: [13.19, -59.54, 10],
+  BD: [23.68, 90.36, 6],
+  BE: [50.5, 4.47, 7],
+  BF: [12.24, -1.56, 6],
+  BG: [42.73, 25.49, 6],
+  BH: [25.93, 50.64, 9],
+  BI: [-3.37, 29.92, 7],
+  BJ: [9.31, 2.32, 6],
+  BN: [4.54, 114.73, 8],
+  BO: [-16.29, -63.59, 5],
+  BR: [-14.24, -51.93, 4],
+  BS: [25.03, -77.4, 7],
+  BT: [27.51, 90.43, 7],
+  BW: [-22.33, 24.68, 5],
+  BY: [53.71, 27.95, 6],
+  BZ: [17.19, -88.5, 7],
+  CA: [56.13, -106.35, 3],
+  CD: [-4.04, 21.76, 4],
+  CF: [6.61, 20.94, 5],
+  CG: [-0.23, 15.83, 5],
+  CH: [46.82, 8.23, 7],
+  CI: [7.54, -5.55, 6],
+  CL: [-35.68, -71.54, 4],
+  CM: [7.37, 12.35, 5],
+  CN: [35.86, 104.2, 4],
+  CO: [4.57, -74.3, 5],
+  CR: [9.75, -83.75, 7],
+  CU: [21.52, -77.78, 6],
+  CV: [16.0, -24.01, 7],
+  CY: [35.13, 33.43, 8],
+  CZ: [49.82, 15.47, 7],
+  DE: [51.17, 10.45, 5],
+  DJ: [11.83, 42.59, 8],
+  DK: [56.26, 9.5, 6],
+  DM: [15.41, -61.37, 10],
+  DO: [18.74, -70.16, 7],
+  DZ: [28.03, 1.66, 4],
+  EC: [-1.83, -78.18, 6],
+  EE: [58.6, 25.01, 7],
+  EG: [26.82, 30.8, 5],
+  ER: [15.18, 39.78, 6],
+  ES: [40.46, -3.75, 5],
+  ET: [9.15, 40.49, 5],
+  FI: [61.92, 25.75, 5],
+  FJ: [-17.71, 178.07, 7],
+  FM: [7.43, 150.55, 6],
+  FR: [46.23, 2.21, 5],
+  GA: [-0.8, 11.61, 6],
+  GB: [55.38, -3.44, 5],
+  GD: [12.12, -61.68, 10],
+  GE: [42.32, 43.36, 7],
+  GH: [7.95, -1.02, 6],
+  GM: [13.44, -15.31, 8],
+  GN: [9.95, -9.7, 6],
+  GQ: [1.65, 10.27, 8],
+  GR: [39.07, 21.82, 6],
+  GT: [15.78, -90.23, 7],
+  GW: [11.8, -15.18, 8],
+  GY: [4.86, -58.93, 6],
+  HN: [14.75, -86.24, 7],
+  HR: [45.1, 15.2, 6],
+  HT: [18.97, -72.29, 8],
+  HU: [47.16, 19.5, 6],
+  ID: [-0.79, 113.92, 4],
+  IE: [53.41, -8.24, 6],
+  IL: [31.05, 34.85, 7],
+  IN: [20.59, 78.96, 4],
+  IQ: [33.22, 43.68, 6],
+  IR: [32.43, 53.69, 5],
+  IS: [64.96, -19.02, 6],
+  IT: [41.87, 12.57, 5],
+  JM: [18.11, -77.3, 8],
+  JO: [30.59, 36.24, 7],
+  JP: [36.2, 138.25, 5],
+  KE: [-0.02, 37.91, 6],
+  KG: [41.2, 74.77, 6],
+  KH: [12.57, 104.99, 6],
+  KI: [1.87, -157.36, 6],
+  KM: [-11.65, 43.36, 8],
+  KN: [17.36, -62.78, 10],
+  KP: [40.34, 127.51, 6],
+  KR: [35.91, 127.77, 6],
+  KW: [29.31, 47.48, 8],
+  KZ: [48.02, 66.92, 4],
+  LA: [19.86, 102.5, 6],
+  LB: [33.85, 35.86, 8],
+  LC: [13.91, -60.98, 10],
+  LI: [47.17, 9.56, 10],
+  LK: [7.87, 80.77, 7],
+  LR: [6.43, -9.43, 7],
+  LS: [-29.61, 28.23, 8],
+  LT: [55.17, 23.88, 7],
+  LU: [49.82, 6.13, 9],
+  LV: [56.88, 24.6, 7],
+  LY: [26.34, 17.23, 5],
+  MA: [31.79, -7.09, 5],
+  MC: [43.75, 7.41, 12],
+  MD: [47.41, 28.37, 7],
+  ME: [42.71, 19.37, 8],
+  MG: [-18.77, 46.87, 5],
+  MH: [7.13, 171.18, 7],
+  MK: [41.61, 21.75, 7],
+  ML: [17.57, -4.0, 5],
+  MM: [21.91, 95.96, 5],
+  MN: [46.86, 103.85, 4],
+  MR: [21.01, -10.94, 5],
+  MT: [35.94, 14.38, 10],
+  MU: [-20.35, 57.55, 9],
+  MV: [3.2, 73.22, 7],
+  MW: [-13.25, 34.3, 6],
+  MX: [23.63, -102.55, 5],
+  MY: [4.21, 101.98, 6],
+  MZ: [-18.67, 35.53, 5],
+  NA: [-22.96, 18.49, 5],
+  NE: [17.61, 8.08, 5],
+  NG: [9.08, 8.68, 5],
+  NI: [12.87, -85.21, 7],
+  NL: [52.13, 5.29, 7],
+  NO: [60.47, 8.47, 5],
+  NP: [28.39, 84.12, 6],
+  NR: [-0.52, 166.93, 11],
+  NZ: [-40.9, 174.89, 5],
+  OM: [21.51, 55.92, 6],
+  PA: [8.54, -80.78, 7],
+  PE: [-9.19, -75.02, 5],
+  PG: [-6.31, 143.96, 6],
+  PH: [12.88, 121.77, 5],
+  PK: [30.38, 69.35, 5],
+  PL: [51.92, 19.15, 6],
+  PS: [31.95, 35.23, 8],
+  PT: [39.4, -8.22, 6],
+  PW: [7.51, 134.58, 9],
+  PY: [-23.44, -58.44, 6],
+  QA: [25.35, 51.18, 8],
+  RO: [45.94, 24.97, 6],
+  RS: [44.02, 21.01, 7],
+  RU: [61.52, 105.32, 3],
+  RW: [-1.94, 29.87, 8],
+  SA: [23.89, 45.08, 5],
+  SB: [-9.65, 160.16, 7],
+  SC: [-4.68, 55.49, 8],
+  SD: [12.86, 30.22, 5],
+  SE: [60.13, 18.64, 4],
+  SG: [1.35, 103.82, 10],
+  SI: [46.15, 14.99, 8],
+  SK: [48.67, 19.7, 7],
+  SL: [8.46, -11.78, 7],
+  SM: [43.94, 12.46, 11],
+  SN: [14.5, -14.45, 6],
+  SO: [5.15, 46.2, 5],
+  SR: [3.92, -56.03, 6],
+  SS: [6.88, 31.31, 5],
+  ST: [0.19, 6.61, 9],
+  SV: [13.79, -88.9, 8],
+  SY: [34.8, 39.0, 6],
+  TD: [15.45, 18.73, 5],
+  TG: [8.62, 0.82, 7],
+  TH: [15.87, 100.99, 5],
+  TJ: [38.86, 71.28, 6],
+  TL: [-8.87, 125.73, 8],
+  TM: [38.97, 59.56, 5],
+  TN: [33.89, 9.54, 6],
+  TO: [-21.18, -175.2, 9],
+  TR: [38.96, 35.24, 5],
+  TT: [10.69, -61.22, 9],
+  TV: [-7.11, 177.65, 10],
+  TW: [23.7, 120.96, 7],
+  TZ: [-6.37, 34.89, 5],
+  UA: [48.38, 31.17, 5],
+  UG: [1.37, 32.29, 6],
+  US: [37.09, -95.71, 4],
+  UY: [-32.52, -55.77, 6],
+  UZ: [41.38, 64.59, 5],
+  VA: [41.9, 12.45, 13],
+  VC: [12.98, -61.29, 10],
+  VE: [6.42, -66.59, 5],
+  VN: [14.06, 108.28, 5],
+  VU: [-15.38, 166.96, 7],
+  WS: [-13.76, -172.1, 9],
+  YE: [15.55, 48.52, 5],
+  ZA: [-30.56, 22.94, 5],
+  ZM: [-13.13, 27.85, 5],
+  ZW: [-19.02, 29.15, 6],
+}
+
 const createRegions = (paisId: string, regionNames: string[]): Region[] =>
   regionNames.map((nombre, index) => ({
     id: `${paisId}-region-${index + 1}`,
@@ -1146,13 +1390,26 @@ const createRegions = (paisId: string, regionNames: string[]): Region[] =>
     descripcion: `Región cultural y gastronómica de ${nombre}.`,
   }))
 
-export const paisesMundo: Pais[] = paisesMundoSeeds.map((seed) => ({
-  id: `${slugify(seed.nombre)}-001`,
-  nombre: seed.nombre,
-  codigoISO: seed.codigoISO,
-  continente: seed.continente,
-  descripcion: `Paisaje culinario de ${seed.nombre}.`,
-}))
+export const paisesMundo: Pais[] = paisesMundoSeeds.map((seed) => {
+  const encuadre = encuadrePorISO[seed.codigoISO]
+
+  if (!encuadre) {
+    throw new Error(`Falta el encuadre de mapa para ${seed.nombre} (${seed.codigoISO}).`)
+  }
+
+  const [lat, lng, zoom] = encuadre
+
+  return {
+    id: `${slugify(seed.nombre)}-001`,
+    nombre: seed.nombre,
+    codigoISO: seed.codigoISO,
+    continente: seed.continente,
+    descripcion: buildPaisDescripcion(seed.nombre, seed.continente),
+    lat,
+    lng,
+    zoom,
+  }
+})
 
 export const regionesPorPaisMundo: Record<string, Region[]> = Object.fromEntries(
   paisesMundoSeeds.map((seed) => {

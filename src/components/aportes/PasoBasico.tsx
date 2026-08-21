@@ -3,8 +3,8 @@
 import { useMemo } from 'react'
 import { UseFormReturn } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
-import { useLocalCountriesRegions } from '@/services/hooks/useLocalCountriesRegions'
-import { getCoordenadasPais } from '@/data/paises-coordenadas'
+import { useCountriesRegions } from '@/services/hooks/useCountriesRegions'
+import { getEncuadrePais } from '@/lib/atlas'
 import { SelectorUbicacionLoader } from './SelectorUbicacionLoader'
 import type { FormData } from './FormularioAporte'
 
@@ -29,15 +29,18 @@ const labelsPorContinente: Record<string, string> = {
   oceania: 'Oceanía',
 }
 
+// Paso 1: Informacion basica del platillo (ubicacion geografica, nombre, descripcion, etc.)
+// Incluye: Selector de pais/region con mapa interactivo de coordenadas
 export function PasoBasico({ form }: PasoBasicoProps) {
   const {
     register,
+    resetField,
     setValue,
     watch,
     formState: { errors },
   } = form
 
-  const { paises, regionesPorPais } = useLocalCountriesRegions()
+  const { paises, regionesPorPais, isLoading, error } = useCountriesRegions()
   const paisId = watch('paisId')
   const lat = watch('lat')
   const lng = watch('lng')
@@ -46,10 +49,9 @@ export function PasoBasico({ form }: PasoBasicoProps) {
     return regionesPorPais[paisId] ?? []
   }, [paisId, regionesPorPais])
 
-  const countryCoordinates = paisId ? getCoordenadasPais(paisId) : undefined
-  const mapCenter: [number, number] = countryCoordinates
-    ? [countryCoordinates.lat, countryCoordinates.lng]
-    : [20, -60]
+  const paisSeleccionado = paises.find((pais) => pais.id === paisId) ?? null
+  const encuadre = getEncuadrePais(paisSeleccionado)
+  const mapCenter: [number, number] = [encuadre.lat, encuadre.lng]
 
   const paisesPorContinente = useMemo(() => {
     const base = Object.fromEntries(
@@ -80,7 +82,7 @@ export function PasoBasico({ form }: PasoBasicoProps) {
       <div className="space-y-2">
         <label className="text-sm font-medium text-[#173c3a]">Nombre del platillo *</label>
         <Input
-          placeholder="Ej: Baleada Hondureña"
+          placeholder="Ej: el plato con el que creciste"
           {...register('nombre')}
           aria-invalid={!!errors.nombre}
           className={inputClassName}
@@ -93,14 +95,15 @@ export function PasoBasico({ form }: PasoBasicoProps) {
         <select
           {...register('paisId', {
             onChange: () => {
-              setValue('lat', undefined, { shouldDirty: true })
-              setValue('lng', undefined, { shouldDirty: true })
+              resetField('lat')
+              resetField('lng')
             },
           })}
           className={selectClassName}
           aria-invalid={!!errors.paisId}
+          disabled={isLoading || !!error || paises.length === 0}
         >
-          <option value="">Selecciona un país</option>
+          <option value="">{isLoading ? 'Cargando países...' : 'Selecciona un país'}</option>
           {paisesPorContinente.map(({ continente, label, paises: paisesDelContinente }) => (
             <optgroup key={continente} label={label}>
               {paisesDelContinente.map((pais) => (
@@ -111,6 +114,16 @@ export function PasoBasico({ form }: PasoBasicoProps) {
             </optgroup>
           ))}
         </select>
+        {error ? (
+          <p className="text-sm text-[#b5432a]">
+            No se pudieron cargar países desde Firestore. Intenta de nuevo más tarde.
+          </p>
+        ) : null}
+        {!isLoading && !error && paises.length === 0 ? (
+          <p className="text-sm text-[#b5432a]">
+            Aún no hay países disponibles para recibir aportes.
+          </p>
+        ) : null}
         {errors.paisId ? <p className="text-sm text-[#b5432a]">{errors.paisId.message}</p> : null}
       </div>
 
@@ -120,9 +133,13 @@ export function PasoBasico({ form }: PasoBasicoProps) {
           {...register('regionId')}
           className={selectClassName}
           aria-invalid={!!errors.regionId}
-          disabled={!paisId}
+          disabled={!paisId || isLoading || !!error || regiones.length === 0}
         >
-          <option value="">Selecciona una región</option>
+          <option value="">
+            {paisId && regiones.length === 0 && !isLoading
+              ? 'Sin regiones disponibles'
+              : 'Selecciona una región'}
+          </option>
           {regiones.map((region) => (
             <option key={region.id} value={region.id}>
               {region.nombre}
@@ -136,10 +153,10 @@ export function PasoBasico({ form }: PasoBasicoProps) {
 
       <div className="space-y-3">
         <div>
-          <label className="text-sm font-medium text-[#173c3a]">Ubicación exacta (opcional)</label>
+          <label className="text-sm font-medium text-[#173c3a]">Ubicación exacta *</label>
           <p className="mt-1 text-xs leading-5 text-[#47615a]">
             Haz clic en el mapa para ubicar el origen del platillo. El punto naranja parpadeante
-            marcará esa posición.
+            marcará esa posición y es lo que coloca tu receta en el atlas.
           </p>
         </div>
         <SelectorUbicacionLoader
@@ -154,6 +171,9 @@ export function PasoBasico({ form }: PasoBasicoProps) {
           <p className="text-xs text-[#47615a]">
             Punto seleccionado: {lat.toFixed(5)}, {lng.toFixed(5)}
           </p>
+        ) : null}
+        {errors.lat || errors.lng ? (
+          <p className="text-sm text-[#b5432a]">{errors.lat?.message ?? errors.lng?.message}</p>
         ) : null}
       </div>
 

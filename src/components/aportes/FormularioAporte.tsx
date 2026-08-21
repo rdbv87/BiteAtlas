@@ -12,18 +12,25 @@ import { PasoReceta } from './PasoReceta'
 import { PasoCultural } from './PasoCultural'
 import { PasoMedia } from './PasoMedia'
 
+// ═══════════════════════════════════════════════════════════════════════════
+// ESQUEMAS DE VALIDACION - Schemas Zod por paso del formulario multi-paso
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Paso 1: Informacion basica del platillo (pais, region, nombre, descripcion, etc.)
+// La ubicacion es obligatoria: sin coordenadas la receta no podria aparecer en el mapa.
 const esquemaPaso1 = z.object({
   paisId: z.string().min(1, 'Selecciona un país'),
   nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   regionId: z.string().min(1, 'Selecciona una región'),
-  lat: z.number().min(-90).max(90).optional(),
-  lng: z.number().min(-180).max(180).optional(),
+  lat: z.number({ error: 'Marca en el mapa el origen del platillo' }).min(-90).max(90),
+  lng: z.number({ error: 'Marca en el mapa el origen del platillo' }).min(-180).max(180),
   descripcion: z.string().min(10, 'La descripción debe tener al menos 10 caracteres'),
   dificultad: z.enum(['facil', 'medio', 'dificil']),
   tiempoPreparacion: z.number().min(1, 'El tiempo debe ser mayor a 0'),
   porciones: z.number().min(1, 'Las porciones deben ser al menos 1'),
 })
 
+// Paso 2: Lista de ingredientes con cantidades y unidades
 const esquemaPaso2 = z.object({
   ingredientes: z
     .array(
@@ -36,17 +43,20 @@ const esquemaPaso2 = z.object({
     .min(1, 'Agrega al menos un ingrediente'),
 })
 
+// Paso 3: Instrucciones paso-a-paso de preparacion
 const esquemaPaso3 = z.object({
   instrucciones: z
     .array(z.string().min(5, 'Cada paso debe tener al menos 5 caracteres'))
     .min(1, 'Agrega al menos un paso de preparación'),
 })
 
+// Paso 4: Imagenes y video de la receta
 const esquemaPaso4 = z.object({
   imagenes: z.array(z.string().url()).min(1, 'Agrega al menos una imagen de la receta'),
   video: z.string().url().optional(),
 })
 
+// Paso 5: Informacion cultural adicional (variante de otra receta, contexto historico, festividades)
 const esquemaPaso5 = z.object({
   varianteDeId: z.string().optional(),
   contextoHistorico: z.string().optional(),
@@ -63,6 +73,22 @@ export type FormData = z.infer<typeof esquemaCompleto>
 
 const PASOS = ['Básico', 'Ingredientes', 'Receta', 'Media', 'Cultural']
 
+// FormularioAporte: Componente orquestador del flujo multi-paso para crear/editar platillos.
+// Flujo de 5 pasos:
+// 1. Basico: Pais, region, nombre, descripcion, dificultad, tiempo, porciones
+// 2. Ingredientes: Lista de ingredientes con cantidades y unidades
+// 3. Receta: Instrucciones paso-a-paso
+// 4. Media: Imagenes y video (opcional)
+// 5. Cultural: Contexto historico, variante de otra receta, festividades asociadas
+//
+// Validacion: Cada paso valida sus campos antes de permitir avanzar
+// Maneja: Estado local del paso actual, files de imagen
+// Props:
+// - onSubmit: Callback cuando se completa el formulario
+// - onCancel: Callback cuando usuario cancela
+// - onStepChange: Callback opcional cuando cambia el paso
+// - initialValues: Valores pre-cargados (para edicion)
+// - submitLabel: Etiqueta del boton final (default: 'Enviar aporte')
 interface FormularioAporteProps {
   onSubmit: (data: FormData, imageFiles: File[]) => void
   onCancel: () => void
@@ -112,6 +138,8 @@ export function FormularioAporte({
         'paisId',
         'nombre',
         'regionId',
+        'lat',
+        'lng',
         'descripcion',
         'dificultad',
         'tiempoPreparacion',

@@ -7,7 +7,7 @@ import {
   createUserWithEmailAndPassword,
   getRedirectResult,
   signInWithEmailAndPassword,
-  signInWithRedirect,
+  signInWithPopup,
   signOut,
   onAuthStateChanged,
   updateProfile,
@@ -15,6 +15,9 @@ import {
 } from 'firebase/auth'
 import { firebaseAuth } from '@/services/firebase'
 
+// Convierte errores de Firebase Auth a mensajes en espanol amigables para el usuario.
+// Mapea codigos de error especificos a mensajes contextuales.
+// Si el error no esta en el mapa, devuelve un mensaje generico con el codigo original.
 function getFriendlyAuthError(error: unknown): string {
   if (error instanceof FirebaseError) {
     const messages: Record<string, string> = {
@@ -34,9 +37,16 @@ function getFriendlyAuthError(error: unknown): string {
       'auth/network-request-failed': 'No se pudo conectar. Revisa tu internet e intenta de nuevo.',
       'auth/unauthorized-domain': 'Este dominio no esta autorizado para iniciar sesion con Google.',
       'auth/cancelled-popup-request': 'Se cancelo el intento anterior de inicio con Google.',
+      'auth/invalid-api-key':
+        'La configuracion de Firebase no es valida. Revisa la clave de la aplicacion.',
+      'auth/app-not-authorized': 'Esta aplicacion no esta autorizada en el proyecto de Firebase.',
+      'auth/configuration-not-found':
+        'Firebase Auth no tiene una configuracion activa para este proyecto.',
+      'auth/operation-not-supported-in-this-environment':
+        'Este metodo de inicio no esta disponible en este entorno.',
     }
 
-    return messages[error.code] ?? 'Ocurrio un error de autenticacion. Intenta de nuevo.'
+    return messages[error.code] ?? `Error de autenticacion (${error.code}). Intenta de nuevo.`
   }
 
   if (error instanceof Error) {
@@ -56,6 +66,13 @@ interface UseAuthResult {
   logout: () => Promise<void>
 }
 
+// Hook de autenticacion que gestiona el estado del usuario y operaciones de auth.
+// Caracteristicas:
+// - Escucha cambios de estado de autenticacion en tiempo real (onAuthStateChanged)
+// - Maneja resultados de redirecciones de Google Sign-In
+// - Provee metodos para registro, login, login con Google, y logout
+// - Todos los errores se convierten a mensajes en espanol amigables
+// - Usa cleanup flag para evitar memory leaks en unmounted components
 export function useAuth(): UseAuthResult {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -155,7 +172,8 @@ export function useAuth(): UseAuthResult {
     provider.setCustomParameters({ prompt: 'select_account' })
 
     try {
-      await signInWithRedirect(firebaseAuth, provider)
+      const credential = await signInWithPopup(firebaseAuth, provider)
+      setUser(credential.user)
     } catch (googleError) {
       const message = getFriendlyAuthError(googleError)
       setError(message)

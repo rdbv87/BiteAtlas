@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Plus, Trash2 } from 'lucide-react'
 import type { FormData } from './FormularioAporte'
 
+// Paso 2: Lista de ingredientes con cantidad y unidad - permite agregar/eliminar dinamicamente
 interface PasoIngredientesProps {
   form: UseFormReturn<FormData>
 }

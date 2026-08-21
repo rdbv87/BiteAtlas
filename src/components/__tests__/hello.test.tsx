@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { localPaises, regionesPorPais } from '@/scripts/data'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 function Hello() {
   return <div>Hello BiteAtlas</div>
@@ -13,9 +14,17 @@ describe('Hello', () => {
   })
 })
 
-describe('Datos globales del formulario', () => {
-  it('incluye todos los países y al menos una región por país', () => {
-    expect(localPaises.length).toBeGreaterThanOrEqual(195)
-    expect(localPaises.every((pais) => (regionesPorPais[pais.id]?.length ?? 0) > 0)).toBe(true)
+describe('Datos runtime del atlas', () => {
+  it('no usa el catálogo local como fuente runtime en hooks cliente', () => {
+    const hookFiles = [
+      'src/services/hooks/useLandingData.ts',
+      'src/services/hooks/usePaises.ts',
+      'src/services/hooks/useCountriesRegions.ts',
+    ]
+
+    for (const file of hookFiles) {
+      const source = readFileSync(join(process.cwd(), file), 'utf8')
+      expect(source).not.toContain('@/scripts/data')
+    }
   })
 })

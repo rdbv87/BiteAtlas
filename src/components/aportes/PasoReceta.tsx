@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Plus, Trash2 } from 'lucide-react'
 import type { FormData } from './FormularioAporte'
 
+// Paso 3: Instrucciones paso-a-paso de preparacion - permite agregar/eliminar dinamicamente
 interface PasoRecetaProps {
   form: UseFormReturn<FormData>
 }

@@ -14,7 +14,7 @@ _Features completadas, en orden de implementación._
 
 004 · Firebase Setup — Configuración de Firebase Firestore, credenciales, reglas de seguridad y estructura de colecciones.
 
-005 · Motor de Ingesta Antropológica — Script versionado para poblar Firestore con Honduras como región piloto.
+005 · Motor de Ingesta Antropológica — Script versionado para poblar Firestore con el catálogo geográfico mundial.
 
 ## Siguiente 🔜
 
@@ -22,7 +22,7 @@ _Features completadas, en orden de implementación._
 
 004 · Firebase Setup — Configuración de Firebase Firestore, credenciales, reglas de seguridad y estructura de colecciones.
 
-005 · Motor de Ingesta Antropológica — Script versionado para poblar Firestore con Honduras como región piloto.
+005 · Motor de Ingesta Antropológica — Script versionado para poblar Firestore con el catálogo geográfico mundial.
 
 ## Hecho ✅
 

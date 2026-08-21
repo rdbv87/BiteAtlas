@@ -47,7 +47,7 @@ export function ResumenAporte({ platillo }: ResumenAporteProps) {
             Tu aporte será revisado por nuestro equipo antes de ser publicado.
           </p>
           <p className="text-xs text-muted-foreground mt-2">
-            Te notificaremos cuando sea aprobado.
+            Te notificaremos cuando sea publicado.
           </p>
         </div>
       </CardContent>

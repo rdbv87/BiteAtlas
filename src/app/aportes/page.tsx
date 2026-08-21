@@ -9,7 +9,7 @@ import { createPlatillo } from '@/services/platillos'
 const GUIA_EDITORIAL = [
   {
     titulo: 'Contexto base',
-    copy: 'Presenta el nombre, país y región para ubicar la receta en su territorio cultural.',
+    copy: 'Presenta el nombre, país y región, y marca en el mapa el punto exacto de origen.',
   },
   {
     titulo: 'Ingredientes vivos',
