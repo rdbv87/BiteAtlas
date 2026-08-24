@@ -12,8 +12,10 @@ vi.mock('@/services/comunidad', async () => {
   return {
     ...actual,
     getUsuarioPerfil: vi.fn(),
+    suscribirUsuarioPerfil: vi.fn(),
     crearOActualizarPerfil: vi.fn(),
     actualizarPerfilUsuario: vi.fn(),
+    reconciliarPuntosUsuario: vi.fn(),
   }
 })
 
@@ -54,6 +56,10 @@ describe('useUsuarioPerfil', () => {
     })
 
     vi.mocked(comunidadService.getUsuarioPerfil).mockResolvedValue(mockPerfil)
+    vi.mocked(comunidadService.suscribirUsuarioPerfil).mockImplementation((_uid, onUpdate) => {
+      onUpdate(mockPerfil)
+      return () => {}
+    })
   })
 
   it('carga el perfil del usuario autenticado y calcula el progreso a Guardián', async () => {
@@ -70,6 +76,10 @@ describe('useUsuarioPerfil', () => {
 
   it('inicializa un perfil por defecto si no existe en Firestore', async () => {
     vi.mocked(comunidadService.getUsuarioPerfil).mockResolvedValue(null)
+    vi.mocked(comunidadService.suscribirUsuarioPerfil).mockImplementation((_uid, onUpdate) => {
+      onUpdate(null)
+      return () => {}
+    })
     vi.mocked(comunidadService.crearOActualizarPerfil).mockResolvedValue({
       ...mockPerfil,
       rol: 'novicio',
@@ -117,5 +127,37 @@ describe('useUsuarioPerfil', () => {
       })
     )
     expect(result.current.perfil?.displayName).toBe('Itzel Cronista Mayor')
+  })
+
+  it('permite sincronizar aportes históricos y reconciliar puntos', async () => {
+    vi.mocked(comunidadService.reconciliarPuntosUsuario).mockResolvedValue({
+      puntosSumados: 100,
+      puntosTotales: 350,
+      puntosCuraduria: 50,
+      aportesValidados: 7,
+      nuevoRol: 'cronista',
+      nuevosHistoriales: 2,
+    })
+
+    const { result } = renderHook(() => useUsuarioPerfil())
+
+    await waitFor(() => {
+      expect(result.current.perfil).not.toBeNull()
+    })
+
+    let syncResult
+    await act(async () => {
+      syncResult = await result.current.sincronizarAportesHistoricos()
+    })
+
+    expect(comunidadService.reconciliarPuntosUsuario).toHaveBeenCalledWith('usr-test-123')
+    expect(syncResult).toEqual({
+      puntosSumados: 100,
+      puntosTotales: 350,
+      puntosCuraduria: 50,
+      aportesValidados: 7,
+      nuevoRol: 'cronista',
+      nuevosHistoriales: 2,
+    })
   })
 })

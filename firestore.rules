@@ -75,22 +75,36 @@ service cloud.firestore {
     // Subcolecciones comunitarias en Platillos
     match /platillos/{platilloId}/validacionesRaices/{valId} {
       allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.usuarioId == request.auth.uid;
-      allow update, delete: if isSignedIn() && (resource.data.usuarioId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.autorId == request.auth.uid;
+      allow update, delete: if isSignedIn() && (resource.data.autorId == request.auth.uid || isAdmin());
     }
 
-    match /platillos/{platilloId}/puentesCulinarios/{puenteId} {
+    match /{path=**}/validacionesRaices/{valId} {
       allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.usuarioId == request.auth.uid;
-      allow update: if isSignedIn();
-      allow delete: if isSignedIn() && (resource.data.usuarioId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.autorId == request.auth.uid;
+      allow update, delete: if isSignedIn() && (resource.data.autorId == request.auth.uid || isAdmin());
     }
 
-    match /platillos/{platilloId}/adaptacionesLocales/{adaptacionId} {
+    // Puentes culinarios (en la raíz o subcolección)
+    match /puentesCulinarios/{puenteId} {
       allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.usuarioId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.creadoPorId == request.auth.uid;
       allow update: if isSignedIn();
-      allow delete: if isSignedIn() && (resource.data.usuarioId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (resource.data.creadoPorId == request.auth.uid || isAdmin());
+    }
+
+    match /{path=**}/puentesCulinarios/{puenteId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.creadoPorId == request.auth.uid;
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn() && (resource.data.creadoPorId == request.auth.uid || isAdmin());
+    }
+
+    match /{path=**}/adaptacionesLocales/{adaptacionId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.autorId == request.auth.uid;
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn() && (resource.data.autorId == request.auth.uid || isAdmin());
     }
   }
 }

@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Shield, Plus, BookOpen, Clock } from 'lucide-react'
+import { ArrowLeft, Shield, Plus, BookOpen, RefreshCw, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useUsuarioPerfil } from '@/services/hooks/useUsuarioPerfil'
 import { PerfilUsuarioCard, VitrinaInsignias } from '@/components/perfil'
@@ -39,7 +40,38 @@ function MapGridBackground() {
 }
 
 export default function PerfilPage() {
-  const { user, perfil, progresoRango, isLoading, error, actualizarPerfil } = useUsuarioPerfil()
+  const {
+    user,
+    perfil,
+    progresoRango,
+    isLoading,
+    error,
+    actualizarPerfil,
+    sincronizarAportesHistoricos,
+  } = useUsuarioPerfil()
+
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [syncFeedback, setSyncFeedback] = useState<string | null>(null)
+
+  const handleSincronizar = async () => {
+    setIsSyncing(true)
+    try {
+      const res = await sincronizarAportesHistoricos()
+      if (res.puntosSumados > 0) {
+        setSyncFeedback(
+          `¡Reconciliación exitosa! Se sumaron +${res.puntosSumados} XP de ${res.nuevosHistoriales} aporte(s) histórico(s).`
+        )
+      } else {
+        setSyncFeedback('Tus aportes y XP ya se encuentran completamente sincronizados.')
+      }
+      setTimeout(() => setSyncFeedback(null), 5000)
+    } catch {
+      setSyncFeedback('Error al reconciliar aportes históricos.')
+      setTimeout(() => setSyncFeedback(null), 5000)
+    } finally {
+      setIsSyncing(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -115,6 +147,19 @@ export default function PerfilPage() {
           </Link>
 
           <div className="flex items-center gap-2.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSincronizar}
+              disabled={isSyncing}
+              className="rounded-full border-[#173c3a]/20 bg-white hover:bg-[#f5f1e8] text-[#173c3a] gap-1.5 text-xs font-semibold"
+            >
+              <RefreshCw
+                className={`w-3.5 h-3.5 text-[#e8754f] ${isSyncing ? 'animate-spin' : ''}`}
+              />
+              {isSyncing ? 'Sincronizando...' : 'Sincronizar Aportes y XP'}
+            </Button>
+
             {esCurador && (
               <Link href="/curaduria">
                 <Button
@@ -143,6 +188,13 @@ export default function PerfilPage() {
 
       {/* Contenido Principal */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-8">
+        {syncFeedback && (
+          <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{syncFeedback}</span>
+          </div>
+        )}
+
         {error && (
           <div className="p-4 rounded-2xl bg-[#fdf1ec] text-[#b5432a] text-sm border border-[#b5432a]/20">
             {error}

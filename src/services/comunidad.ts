@@ -7,9 +7,9 @@ import {
   updateDoc,
   query,
   where,
-  orderBy,
   runTransaction,
   serverTimestamp,
+  onSnapshot,
 } from 'firebase/firestore'
 import { firestore } from '@/services/firebase'
 import {
@@ -42,6 +42,10 @@ export const UMBRALES_ROLES = {
 } as const
 
 export const UMBRAL_APROBACION_GUARDIANES = 2
+export const PUNTOS_VALIDACION_RAICES = 25
+export const PUNTOS_APORTE_PLATILLO = 50
+export const PUNTOS_PUENTE_CULINARIO = 30
+export const PUNTOS_ADAPTACION_LOCAL = 20
 
 // ═══════════════════════════════════════════════════════════════════════════
 // FUNCIONES PURAS DE LÓGICA DE NEGOCIO Y GAMIFICACIÓN
@@ -154,6 +158,38 @@ export async function getUsuarioPerfil(uid: string): Promise<UsuarioPerfil | nul
   }
 
   return parseResult.data
+}
+
+/**
+ * Suscribe un listener en tiempo real a los cambios del perfil de usuario en Firestore.
+ */
+export function suscribirUsuarioPerfil(
+  uid: string,
+  onUpdate: (perfil: UsuarioPerfil | null) => void,
+  onError?: (error: Error) => void
+): () => void {
+  const db = getFirestoreInstance()
+  const userRef = doc(db, 'usuarios', uid)
+
+  return onSnapshot(
+    userRef,
+    (snap) => {
+      if (!snap.exists()) {
+        onUpdate(null)
+        return
+      }
+
+      const parseResult = UsuarioPerfilSchema.safeParse(snap.data())
+      if (parseResult.success) {
+        onUpdate(parseResult.data)
+      } else {
+        onError?.(ValidationError.fromZodError(parseResult.error))
+      }
+    },
+    (err) => {
+      onError?.(err)
+    }
+  )
 }
 
 /**
@@ -273,14 +309,33 @@ export async function agregarPuntosUsuario(
 
   return await runTransaction(db, async (transaction) => {
     const userDoc = await transaction.get(userRef)
-    if (!userDoc.exists()) {
-      throw new CommunityError('Usuario no encontrado', 'USER_NOT_FOUND')
+
+    let puntosActuales = 0
+    let puntosCuraduriaActuales = 0
+    let aportesValidados = 0
+    let displayName = 'Explorador Culinario'
+    let email = ''
+    let photoURL: string | undefined = undefined
+    let insignias: InsigniaOtorgada[] = []
+    let regionesEspecialidad: string[] = []
+
+    if (userDoc.exists()) {
+      const userData = userDoc.data()
+      puntosActuales = (userData.puntosAntropologicos as number) || 0
+      puntosCuraduriaActuales = (userData.puntosCuraduria as number) || 0
+      aportesValidados = (userData.aportesValidados as number) || 0
+      displayName = (userData.displayName as string) || displayName
+      email = (userData.email as string) || email
+      photoURL = (userData.photoURL as string) || undefined
+      insignias = (userData.insignias as InsigniaOtorgada[]) || []
+      regionesEspecialidad = (userData.regionesEspecialidad as string[]) || []
     }
 
-    const userData = userDoc.data()
-    const puntosActuales = (userData.puntosAntropologicos as number) || 0
-    const aportesValidados = (userData.aportesValidados as number) || 0
     const nuevosPuntos = Math.max(0, puntosActuales + puntos)
+    const esCuraduria = referenciaTipo === 'review' || referenciaTipo === 'curaduria'
+    const nuevosPuntosCuraduria = esCuraduria
+      ? Math.max(0, puntosCuraduriaActuales + puntos)
+      : puntosCuraduriaActuales
     const nuevoRol = calcularRolUsuario(nuevosPuntos, aportesValidados)
 
     const registroHistorial: HistorialPuntos = {
@@ -303,11 +358,29 @@ export async function agregarPuntosUsuario(
       createdAt: serverTimestamp(),
     })
 
-    transaction.update(userRef, {
-      puntosAntropologicos: nuevosPuntos,
-      rol: nuevoRol,
-      updatedAt: serverTimestamp(),
-    })
+    if (userDoc.exists()) {
+      transaction.update(userRef, {
+        puntosAntropologicos: nuevosPuntos,
+        puntosCuraduria: nuevosPuntosCuraduria,
+        rol: nuevoRol,
+        updatedAt: serverTimestamp(),
+      })
+    } else {
+      transaction.set(userRef, {
+        uid,
+        email,
+        displayName,
+        photoURL,
+        rol: nuevoRol,
+        puntosAntropologicos: nuevosPuntos,
+        puntosCuraduria: nuevosPuntosCuraduria,
+        aportesValidados,
+        insignias,
+        regionesEspecialidad,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
+    }
 
     return { nuevosPuntos, nuevoRol }
   })
@@ -655,6 +728,20 @@ export async function crearValidacionRaices(
     createdAt: serverTimestamp(),
   })
 
+  if (data.autorId && data.autorId !== 'anonimo') {
+    try {
+      await agregarPuntosUsuario(
+        data.autorId,
+        PUNTOS_VALIDACION_RAICES,
+        'Evaluación de receta (Validación de Raíces)',
+        'review',
+        platilloId
+      )
+    } catch (error) {
+      console.error('Error al otorgar puntos por validación de raíces:', error)
+    }
+  }
+
   return validacion.data
 }
 
@@ -677,4 +764,267 @@ export async function obtenerValidacionesPorPlatillo(
   }
 
   return reviews
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SERVICIOS FIRESTORE - RECONCILIACIÓN Y CÁLCULO RETROACTIVO DE XP
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Reconcilia de forma idempotente y retroactiva todos los aportes históricos de un usuario
+ * (platillos, evaluaciones, puentes y adaptaciones) asignando la experiencia (XP),
+ * puntos de curaduría y aportes validados correspondientes sin duplicaciones.
+ */
+export async function reconciliarPuntosUsuario(uid: string): Promise<{
+  puntosSumados: number
+  puntosTotales: number
+  puntosCuraduria: number
+  aportesValidados: number
+  nuevoRol: RolUsuario
+  nuevosHistoriales: number
+}> {
+  const db = getFirestoreInstance()
+  const userRef = doc(db, 'usuarios', uid)
+  const historialColRef = collection(db, 'usuarios', uid, 'historialPuntos')
+
+  // 1. Obtener historial ya registrado para evitar duplicados (idempotencia)
+  const snapHistorial = await getDocs(historialColRef)
+  const historialExistente = new Set<string>()
+  for (const d of snapHistorial.docs) {
+    const data = d.data() as HistorialPuntos
+    if (data.referenciaTipo && data.referenciaId) {
+      historialExistente.add(`${data.referenciaTipo}:${data.referenciaId}`)
+    }
+  }
+
+  // 2. Obtener platillos accesibles (los creados por el usuario y los publicados)
+  const qPlatillosUsuario = query(collection(db, 'platillos'), where('contribuidorId', '==', uid))
+  const qPlatillosPublicados = query(
+    collection(db, 'platillos'),
+    where('estado', '==', 'publicado')
+  )
+
+  const [snapPlatillosUsuario, snapPlatillosPublicados] = await Promise.all([
+    getDocs(qPlatillosUsuario).catch(() => ({ docs: [] })),
+    getDocs(qPlatillosPublicados).catch(() => ({ docs: [] })),
+  ])
+
+  const mapaPlatillos = new Map<string, { id: string }>()
+  for (const docSnap of [...snapPlatillosUsuario.docs, ...snapPlatillosPublicados.docs]) {
+    mapaPlatillos.set(docSnap.id, docSnap)
+  }
+
+  // 3. Buscar puentes culinarios creados por el usuario (en raíz y subcolecciones)
+  const puentesUsuario: { id: string }[] = []
+  try {
+    const qPuentes = query(collection(db, 'puentesCulinarios'), where('creadoPorId', '==', uid))
+    const snapPuentes = await getDocs(qPuentes)
+    for (const d of snapPuentes.docs) {
+      puentesUsuario.push({ id: d.id })
+    }
+  } catch {
+    // Si no está en la raíz, se auditará desde las subcolecciones de platillos
+  }
+
+  // 4. Buscar validaciones, adaptaciones y puentes en las subcolecciones de platillos accesibles
+  const validacionesUsuario: { id: string; platilloId: string }[] = []
+  const adaptacionesUsuario: { id: string; platilloId: string }[] = []
+
+  await Promise.all(
+    Array.from(mapaPlatillos.keys()).map(async (platilloId) => {
+      // Validaciones de raíces
+      try {
+        const subSnap = await getDocs(
+          query(
+            collection(db, 'platillos', platilloId, 'validacionesRaices'),
+            where('autorId', '==', uid)
+          )
+        )
+        for (const vDoc of subSnap.docs) {
+          validacionesUsuario.push({ id: vDoc.id, platilloId })
+        }
+      } catch {}
+
+      // Adaptaciones locales
+      try {
+        const subSnap = await getDocs(
+          query(
+            collection(db, 'platillos', platilloId, 'adaptacionesLocales'),
+            where('autorId', '==', uid)
+          )
+        )
+        for (const aDoc of subSnap.docs) {
+          adaptacionesUsuario.push({ id: aDoc.id, platilloId })
+        }
+      } catch {}
+
+      // Puentes en subcolección (si existieran)
+      try {
+        const subSnap = await getDocs(
+          query(
+            collection(db, 'platillos', platilloId, 'puentesCulinarios'),
+            where('creadoPorId', '==', uid)
+          )
+        )
+        for (const pDoc of subSnap.docs) {
+          if (!puentesUsuario.some((p) => p.id === pDoc.id)) {
+            puentesUsuario.push({ id: pDoc.id })
+          }
+        }
+      } catch {}
+    })
+  )
+
+  // 6. Preparar nuevos registros
+  const nuevosRegistros: HistorialPuntos[] = []
+  let puntosASumar = 0
+  let curaduriaASumar = 0
+
+  // Procesar platillos
+  for (const pDoc of snapPlatillosUsuario.docs) {
+    const key = `platillo:${pDoc.id}`
+    if (!historialExistente.has(key)) {
+      historialExistente.add(key)
+      puntosASumar += PUNTOS_APORTE_PLATILLO
+      nuevosRegistros.push({
+        id: doc(historialColRef).id,
+        usuarioId: uid,
+        puntos: PUNTOS_APORTE_PLATILLO,
+        motivo: 'Aporte de receta tradicional a la cartografía',
+        referenciaTipo: 'platillo',
+        referenciaId: pDoc.id,
+        createdAt: new Date(),
+      })
+    }
+  }
+
+  // Procesar validaciones
+  for (const v of validacionesUsuario) {
+    const key = `review:${v.platilloId}`
+    const keyReviewId = `review:${v.id}`
+    if (!historialExistente.has(key) && !historialExistente.has(keyReviewId)) {
+      historialExistente.add(key)
+      puntosASumar += PUNTOS_VALIDACION_RAICES
+      curaduriaASumar += PUNTOS_VALIDACION_RAICES
+      nuevosRegistros.push({
+        id: doc(historialColRef).id,
+        usuarioId: uid,
+        puntos: PUNTOS_VALIDACION_RAICES,
+        motivo: 'Evaluación antropológica de receta (Validación de Raíces)',
+        referenciaTipo: 'review',
+        referenciaId: v.platilloId,
+        createdAt: new Date(),
+      })
+    }
+  }
+
+  // Procesar puentes
+  for (const puente of puentesUsuario) {
+    const key = `puente:${puente.id}`
+    if (!historialExistente.has(key)) {
+      historialExistente.add(key)
+      puntosASumar += PUNTOS_PUENTE_CULINARIO
+      nuevosRegistros.push({
+        id: doc(historialColRef).id,
+        usuarioId: uid,
+        puntos: PUNTOS_PUENTE_CULINARIO,
+        motivo: 'Propuesta de puente culinario interregional',
+        referenciaTipo: 'puente',
+        referenciaId: puente.id,
+        createdAt: new Date(),
+      })
+    }
+  }
+
+  // Procesar adaptaciones
+  for (const a of adaptacionesUsuario) {
+    const key = `adaptacion:${a.id}`
+    if (!historialExistente.has(key)) {
+      historialExistente.add(key)
+      puntosASumar += PUNTOS_ADAPTACION_LOCAL
+      nuevosRegistros.push({
+        id: doc(historialColRef).id,
+        usuarioId: uid,
+        puntos: PUNTOS_ADAPTACION_LOCAL,
+        motivo: 'Propuesta de adaptación local o variante',
+        referenciaTipo: 'adaptacion',
+        referenciaId: a.id,
+        createdAt: new Date(),
+      })
+    }
+  }
+
+  // 7. Persistir en Firestore mediante transacción atómica
+  return await runTransaction(db, async (transaction) => {
+    const userDoc = await transaction.get(userRef)
+    let puntosActuales = 0
+    let curaduriaActual = 0
+    let aportesActuales = snapPlatillosUsuario.docs.length
+    let displayName = 'Explorador Culinario'
+    let email = ''
+    let photoURL: string | undefined = undefined
+    let insignias: InsigniaOtorgada[] = []
+    let regionesEspecialidad: string[] = []
+
+    if (userDoc.exists()) {
+      const data = userDoc.data()
+      puntosActuales = (data.puntosAntropologicos as number) || 0
+      curaduriaActual = (data.puntosCuraduria as number) || 0
+      aportesActuales = Math.max(
+        snapPlatillosUsuario.docs.length,
+        (data.aportesValidados as number) || 0
+      )
+      displayName = (data.displayName as string) || displayName
+      email = (data.email as string) || email
+      photoURL = (data.photoURL as string) || undefined
+      insignias = (data.insignias as InsigniaOtorgada[]) || []
+      regionesEspecialidad = (data.regionesEspecialidad as string[]) || []
+    }
+
+    const puntosTotales = puntosActuales + puntosASumar
+    const curaduriaTotal = curaduriaActual + curaduriaASumar
+    const nuevoRol = calcularRolUsuario(puntosTotales, aportesActuales)
+
+    for (const reg of nuevosRegistros) {
+      const hRef = doc(collection(db, 'usuarios', uid, 'historialPuntos'), reg.id)
+      transaction.set(hRef, {
+        ...reg,
+        createdAt: serverTimestamp(),
+      })
+    }
+
+    if (userDoc.exists()) {
+      transaction.update(userRef, {
+        puntosAntropologicos: puntosTotales,
+        puntosCuraduria: curaduriaTotal,
+        aportesValidados: aportesActuales,
+        rol: nuevoRol,
+        updatedAt: serverTimestamp(),
+      })
+    } else {
+      transaction.set(userRef, {
+        uid,
+        email,
+        displayName,
+        photoURL,
+        rol: nuevoRol,
+        puntosAntropologicos: puntosTotales,
+        puntosCuraduria: curaduriaTotal,
+        aportesValidados: aportesActuales,
+        insignias,
+        regionesEspecialidad,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
+    }
+
+    return {
+      puntosSumados: puntosASumar,
+      puntosTotales,
+      puntosCuraduria: curaduriaTotal,
+      aportesValidados: aportesActuales,
+      nuevoRol,
+      nuevosHistoriales: nuevosRegistros.length,
+    }
+  })
 }

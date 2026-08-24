@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   getUsuarioPerfil,
+  suscribirUsuarioPerfil,
   crearOActualizarPerfil,
   actualizarPerfilUsuario,
+  reconciliarPuntosUsuario,
   UMBRALES_ROLES,
 } from '@/services/comunidad'
 
@@ -73,7 +75,35 @@ export function useUsuarioPerfil() {
   }, [user])
 
   useEffect(() => {
-    if (!isAuthLoading) {
+    if (isAuthLoading) return
+
+    if (!user) {
+      const frame = requestAnimationFrame(() => {
+        setPerfil(null)
+        setIsLoading(false)
+      })
+
+      return () => cancelAnimationFrame(frame)
+    }
+
+    // Intentar suscripción reactiva en tiempo real
+    let unsubscribe: (() => void) | undefined
+    try {
+      unsubscribe = suscribirUsuarioPerfil(
+        user.uid,
+        (data) => {
+          if (!data) {
+            void cargarPerfil()
+          } else {
+            setPerfil(data)
+            setIsLoading(false)
+          }
+        },
+        () => {
+          void cargarPerfil()
+        }
+      )
+    } catch {
       const frame = requestAnimationFrame(() => {
         void cargarPerfil()
       })
@@ -81,8 +111,12 @@ export function useUsuarioPerfil() {
       return () => cancelAnimationFrame(frame)
     }
 
-    return undefined
-  }, [isAuthLoading, cargarPerfil])
+    return () => {
+      if (unsubscribe) {
+        unsubscribe()
+      }
+    }
+  }, [user, isAuthLoading, cargarPerfil])
 
   const progresoRango: SiguienteRangoInfo = useMemo(() => {
     if (!perfil) {
@@ -184,6 +218,20 @@ export function useUsuarioPerfil() {
     }
   }
 
+  const sincronizarAportesHistoricos = async () => {
+    if (!user) throw new Error('Usuario no autenticado')
+    setError(null)
+    try {
+      const res = await reconciliarPuntosUsuario(user.uid)
+      void cargarPerfil()
+      return res
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error al sincronizar aportes históricos'
+      setError(msg)
+      throw err
+    }
+  }
+
   return {
     user,
     perfil,
@@ -192,5 +240,6 @@ export function useUsuarioPerfil() {
     error,
     recargarPerfil: cargarPerfil,
     actualizarPerfil,
+    sincronizarAportesHistoricos,
   }
 }

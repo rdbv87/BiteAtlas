@@ -128,7 +128,13 @@ export function ValidacionRaicesSection({
       setClaridad(5)
       setRiqueza(5)
       setMostrarFormulario(false)
-      setMensajeExito('¡Evaluación registrada! Aporta a la validación de raíces del platillo.')
+      if (currentUserId && currentUserId !== 'anonimo') {
+        setMensajeExito('¡Evaluación registrada! Has ganado +25 XP antropológicos.')
+      } else {
+        setMensajeExito(
+          '¡Evaluación registrada! Inicia sesión para acumular puntos de experiencia.'
+        )
+      }
       setTimeout(() => setMensajeExito(null), 4000)
     } catch {
       // Error manejado por hook
@@ -213,10 +219,22 @@ export function ValidacionRaicesSection({
             onSubmit={handleSubmit}
             className="p-4 border rounded-xl bg-card space-y-4 shadow-sm"
           >
-            <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-              <BookOpen className="w-4 h-4 text-primary" />
-              Nueva Validación de Raíces
-            </h4>
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <BookOpen className="w-4 h-4 text-primary" />
+                Nueva Validación de Raíces
+              </h4>
+              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                +25 XP Antropológicos
+              </span>
+            </div>
+
+            {!currentUserId && (
+              <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-800 text-xs">
+                ⚠️ Estás evaluando como anónimo. Inicia sesión para registrar los 25 XP en tu
+                perfil.
+              </div>
+            )}
 
             <div className="space-y-3 p-3 bg-muted/30 rounded-lg border">
               <RatingInput

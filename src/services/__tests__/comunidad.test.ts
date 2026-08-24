@@ -1,11 +1,25 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, it, expect } from 'vitest'
 import {
   calcularRolUsuario,
   evaluarConsensoComunitario,
   calcularPromedioValidaciones,
-  UMBRALES_ROLES,
+  PUNTOS_VALIDACION_RAICES,
+  PUNTOS_APORTE_PLATILLO,
+  PUNTOS_PUENTE_CULINARIO,
+  PUNTOS_ADAPTACION_LOCAL,
 } from '../comunidad'
 import type { ValidacionRaicesReview } from '@/types'
+
+describe('Constantes de Gamificación', () => {
+  it('define valores positivos coherentes para todos los tipos de aportes', () => {
+    expect(PUNTOS_VALIDACION_RAICES).toBe(25)
+    expect(PUNTOS_APORTE_PLATILLO).toBe(50)
+    expect(PUNTOS_PUENTE_CULINARIO).toBe(30)
+    expect(PUNTOS_ADAPTACION_LOCAL).toBe(20)
+  })
+})
 
 describe('Lógica de Gamificación y Roles (calcularRolUsuario)', () => {
   it('asigna "novicio" a usuarios recién registrados o con aportes insuficientes', () => {
@@ -90,5 +104,16 @@ describe('Cálculo de Métricas Peer Review (calcularPromedioValidaciones)', () 
     expect(metricas.claridadInstrucciones).toBe(4)
     expect(metricas.riquezaHistorica).toBe(4)
     expect(metricas.promedioGlobal).toBe(4.2)
+  })
+})
+
+describe('Reglas de comunidad en Firestore', () => {
+  it('permite crear evaluaciones usando autorId, no usuarioId, para coincidir con la estructura real', () => {
+    const rulesPath = resolve(process.cwd(), 'firestore.rules')
+    const rules = readFileSync(rulesPath, 'utf8')
+
+    expect(rules).toContain('match /platillos/{platilloId}/validacionesRaices/{valId}')
+    expect(rules).toContain('request.resource.data.autorId == request.auth.uid')
+    expect(rules).not.toContain('request.resource.data.usuarioId == request.auth.uid')
   })
 })
