@@ -3,18 +3,28 @@
 import { startTransition, useEffect, useMemo, useState } from 'react'
 import { ArrowUpRight, Compass, Utensils } from 'lucide-react'
 import { FeaturedRecipeCard } from '@/components/mapas/FeaturedRecipeCard'
+import { WorldAtlasMap } from '@/components/mapas/WorldAtlasMap'
+import { WorldAtlasCountryCard } from '@/components/mapas/WorldAtlasCountryCard'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { UserNav } from '@/components/ui/UserNav'
 import { RecipeExplorer } from '@/components/fichas/RecipeExplorer'
 import { useLandingData } from '@/services/hooks/useLandingData'
 import { summarizeWords } from '@/lib/utils'
 import { formatCoordenadas, getEncuadrePais, palabrasClaveDeReceta } from '@/lib/atlas'
+import type { Pais } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
 export default function Home() {
-  const { paisesConRecetas, recetasPorPais, regionesPorPais, isLoading, error } = useLandingData()
+  const { paises, paisesConRecetas, recetasPorPais, regionesPorPais, isLoading, error } =
+    useLandingData()
   const [featuredRecipeId, setFeaturedRecipeId] = useState<string | null>(null)
+  const [selectedAtlasCountry, setSelectedAtlasCountry] = useState<Pais | null | undefined>(
+    undefined
+  )
+  const atlasCountry =
+    selectedAtlasCountry === undefined ? (paisesConRecetas[0] ?? null) : selectedAtlasCountry
 
   useEffect(() => {
     const recipes = Object.values(recetasPorPais).flat()
@@ -58,16 +68,45 @@ export default function Home() {
 
   return (
     <main className="overflow-hidden bg-[#f5f1e8] text-[#173c3a]">
-      <section className="relative isolate min-h-[720px] bg-[#173c3a] text-[#f5f1e8]">
-        <div className="absolute inset-0 -z-10 opacity-30 [background-image:linear-gradient(rgba(245,241,232,.12)_1px,transparent_1px),linear-gradient(90deg,rgba(245,241,232,.12)_1px,transparent_1px)] [background-size:72px_72px]" />
-        <div className="pointer-events-none absolute -right-20 top-20 h-64 w-64 rounded-full border-[18px] border-[#e8754f]/25 sm:right-12" />
+      {/* Navegación Superior */}
+      <header className="border-b border-[#f5f1e8]/10 bg-[#173c3a] text-[#f5f1e8] px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <Link
+              href="/"
+              className="font-editorial text-2xl tracking-tight text-[#f5f1e8] flex items-center gap-2"
+            >
+              <span className="w-2.5 h-2.5 rounded-full bg-[#f0a35b]" />
+              BiteAtlas
+            </Link>
+            <nav className="hidden md:flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-[#d4ddd1]">
+              <Link href="/mapa" className="hover:text-[#f0a35b] transition-colors">
+                Mapa
+              </Link>
+              <Link href="#recetas" className="hover:text-[#f0a35b] transition-colors">
+                Recetas
+              </Link>
+              <Link href="/aportes" className="hover:text-[#f0a35b] transition-colors">
+                Aportar
+              </Link>
+            </nav>
+          </div>
+
+          <UserNav variant="dark" />
+        </div>
+      </header>
+
+      <section className="relative isolate min-h-180 bg-[#173c3a] text-[#f5f1e8]">
+        <div className="absolute inset-0 -z-10 opacity-30 bg-[linear-gradient(rgba(245,241,232,.12)_1px,transparent_1px),linear-gradient(90deg,rgba(245,241,232,.12)_1px,transparent_1px)] bg-size-[72px_72px]" />
+        <div className="pointer-events-none absolute -right-20 top-20 h-64 w-64 rounded-full border-18 border-[#e8754f]/25 sm:right-12" />
         <div className="pointer-events-none absolute bottom-16 left-[8%] h-3 w-3 animate-bounce rounded-full bg-[#f0a35b] shadow-[0_0_0_10px_rgba(240,163,91,.15)]" />
-        <div className="mx-auto grid min-h-[720px] max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-[1.05fr_.95fr] lg:px-10">
+        <div className="mx-auto grid min-h-180 max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-[1.05fr_.95fr] lg:px-10">
           <div className="max-w-2xl">
             <div className="mb-10 flex items-center gap-3 text-xs uppercase tracking-[0.28em] text-[#f0a35b]">
               <span className="h-px w-10 bg-[#f0a35b]" />
               Atlas culinario · 01
             </div>
+
             <h1 className="max-w-3xl font-editorial text-6xl leading-[0.98] tracking-[-0.03em] sm:text-7xl lg:text-8xl">
               Donde cada plato guarda un territorio.
             </h1>
@@ -193,10 +232,10 @@ export default function Home() {
               </Button>
             </Link>
           </div>
-          <div className="relative min-h-[300px] overflow-hidden bg-[#173c3a] p-8 text-[#f5f1e8] [background-image:radial-gradient(circle_at_20%_20%,rgba(240,163,91,.8)_0_2px,transparent_3px),linear-gradient(135deg,transparent_49%,rgba(212,221,209,.15)_50%,transparent_51%)] [background-size:36px_36px,100%_100%]">
+          <div className="relative min-h-75 overflow-hidden bg-[#173c3a] p-8 text-[#f5f1e8] bg-[radial-gradient(circle_at_20%_20%,rgba(240,163,91,.8)_0_2px,transparent_3px),linear-gradient(135deg,transparent_49%,rgba(212,221,209,.15)_50%,transparent_51%)] bg-size-[36px_36px,100%_100%]">
             <div className="absolute left-[22%] top-[30%] h-4 w-4 rounded-full bg-[#f0a35b] shadow-[0_0_0_8px_rgba(240,163,91,.18)]" />
             <div className="absolute left-[22%] top-[30%] h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#f0a35b]/40" />
-            <div className="absolute bottom-8 left-8 max-w-[220px]">
+            <div className="absolute bottom-8 left-8 max-w-55">
               <p className="text-xs uppercase tracking-[0.2em] text-[#f0a35b]">Punto de partida</p>
               <p className="mt-2 font-editorial text-3xl">
                 {selectedCountry?.nombre ?? 'Tu cocina'}
@@ -219,52 +258,33 @@ export default function Home() {
               <p className="text-xs uppercase tracking-[0.24em] text-[#e8754f]">
                 Atlas para tu viaje
               </p>
-              <h2 className="mt-3 font-editorial text-4xl text-[#173c3a]">
+              <h2 className="mt-3 font-editorial text-4xl sm:text-5xl text-[#173c3a]">
                 Explora países, regiones y sabores auténticos.
               </h2>
             </div>
-            <p className="max-w-2xl text-sm leading-7 text-[#47615a]">
-              Elige un país y descubre tres recetas que cuentan su historia culinaria.
+            <p className="max-w-xl text-sm leading-7 text-[#47615a]">
+              Interactúa con el planisferio para descubrir las recetas vivas y tradiciones
+              culinarias mapeadas por la comunidad alrededor del mundo.
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
-            {paisesConRecetas.length > 0 ? (
-              paisesConRecetas.map((pais) => (
-                <div
-                  key={pais.id}
-                  className="rounded-[2rem] border border-[#173c3a]/10 bg-white p-6 shadow-sm"
-                >
-                  <p className="text-xs uppercase tracking-[0.2em] text-[#e8754f]">
-                    {pais.continente}
-                  </p>
-                  <h3 className="mt-4 text-xl font-semibold text-[#173c3a]">{pais.nombre}</h3>
-                  <p className="mt-3 text-sm leading-6 text-[#47615a] line-clamp-4">
-                    {pais.descripcion}
-                  </p>
-                  <Link
-                    href={`/mapa?pais=${pais.id}`}
-                    className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#173c3a] hover:text-[#e8754f]"
-                  >
-                    Explorar país
-                    <ArrowUpRight className="h-3 w-3" />
-                  </Link>
-                </div>
-              ))
-            ) : (
-              <div className="border border-dashed border-[#173c3a]/20 bg-white/60 p-8 text-[#47615a] sm:col-span-3">
-                {isLoading ? 'Cargando el atlas...' : emptyStateMessage}
-                {!isLoading && !error && (
-                  <Link
-                    href="/aportes"
-                    className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#173c3a] hover:text-[#e8754f]"
-                  >
-                    Aportar una receta
-                    <ArrowUpRight className="h-3 w-3" />
-                  </Link>
-                )}
-              </div>
-            )}
+          <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr] items-start">
+            <WorldAtlasMap
+              paises={paises}
+              paisesConRecetas={paisesConRecetas}
+              recetasPorPais={recetasPorPais}
+              selectedPaisId={atlasCountry?.id ?? null}
+              onSelectPais={(pais) => setSelectedAtlasCountry(pais)}
+              isLoading={isLoading}
+            />
+
+            <div className="sticky top-8">
+              <WorldAtlasCountryCard
+                pais={atlasCountry}
+                recetas={atlasCountry ? (recetasPorPais[atlasCountry.id] ?? []) : []}
+                onClose={() => setSelectedAtlasCountry(null)}
+              />
+            </div>
           </div>
         </div>
       </section>

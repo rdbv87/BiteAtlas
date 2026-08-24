@@ -52,6 +52,7 @@ export function PasoBasico({ form }: PasoBasicoProps) {
   const paisSeleccionado = paises.find((pais) => pais.id === paisId) ?? null
   const encuadre = getEncuadrePais(paisSeleccionado)
   const mapCenter: [number, number] = [encuadre.lat, encuadre.lng]
+  const mapZoom = encuadre.zoom
 
   const paisesPorContinente = useMemo(() => {
     const base = Object.fromEntries(
@@ -97,6 +98,7 @@ export function PasoBasico({ form }: PasoBasicoProps) {
             onChange: () => {
               resetField('lat')
               resetField('lng')
+              resetField('regionId')
             },
           })}
           className={selectClassName}
@@ -161,6 +163,7 @@ export function PasoBasico({ form }: PasoBasicoProps) {
         </div>
         <SelectorUbicacionLoader
           center={mapCenter}
+          zoom={mapZoom}
           value={lat != null && lng != null ? { lat, lng } : undefined}
           onChange={({ lat: nextLat, lng: nextLng }) => {
             setValue('lat', nextLat, { shouldDirty: true, shouldValidate: true })

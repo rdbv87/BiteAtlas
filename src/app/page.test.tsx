@@ -3,6 +3,11 @@ import { describe, expect, it, vi } from 'vitest'
 import type { Pais, Platillo, Region } from '@/types'
 import Home from './page'
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}))
+
 const paises: [Pais, Pais] = [
   {
     id: 'japon-001',

@@ -9,7 +9,17 @@ import {
   DificultadSchema,
   CategoriaIngredienteSchema,
   EstadoPlatilloSchema,
+  RolUsuarioSchema,
+  InsigniaCategoriaSchema,
+  InsigniaOtorgadaSchema,
+  HistorialPuntosSchema,
+  UsuarioPerfilSchema,
+  TipoVinculoPuenteSchema,
+  PuenteCulinarioSchema,
+  AdaptacionLocalSchema,
+  ValidacionRaicesReviewSchema,
 } from '../schemas'
+
 import { ValidationError } from '../../errors/validation-error'
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
@@ -224,11 +234,17 @@ describe('PlatilloSchema', () => {
       porciones: 4,
       video: 'https://youtube.com/watch?v=123',
       contextoHistorico: 'Historia del platillo',
+      leyendaOrigen: 'Cuenta la leyenda que un pescador descubrió la receta tras una tormenta',
+      guarniciones: ['Arroz blanco', 'Tostones'],
       festividades: ['Fiestas patrias'],
     }
     const result = PlatilloSchema.parse(platilloCompleto)
     expect(result.tiempoPreparacion).toBe(10)
     expect(result.porciones).toBe(4)
+    expect(result.leyendaOrigen).toBe(
+      'Cuenta la leyenda que un pescador descubrió la receta tras una tormenta'
+    )
+    expect(result.guarniciones).toEqual(['Arroz blanco', 'Tostones'])
   })
 
   it('usa estado por defecto "pendiente"', () => {
@@ -279,5 +295,145 @@ describe('ValidationError', () => {
     const json = error.toJSON()
     expect(json.name).toBe('ValidationError')
     expect(json.field).toBe('field')
+  })
+})
+
+// ── Gamificación y Comunidad ───────────────────────────────────────────────
+
+describe('RolUsuarioSchema', () => {
+  it('acepta roles válidos', () => {
+    expect(RolUsuarioSchema.parse('novicio')).toBe('novicio')
+    expect(RolUsuarioSchema.parse('cronista')).toBe('cronista')
+    expect(RolUsuarioSchema.parse('guardian')).toBe('guardian')
+    expect(RolUsuarioSchema.parse('maestro')).toBe('maestro')
+  })
+
+  it('rechaza roles inválidos', () => {
+    expect(() => RolUsuarioSchema.parse('admin_invalido')).toThrow()
+  })
+})
+
+describe('InsigniaOtorgadaSchema', () => {
+  it('valida una insignia bien estructurada', () => {
+    const insignia = {
+      id: 'ins-001',
+      codigo: 'maiz_nativo',
+      nombre: 'Guardián del Maíz Nativo',
+      descripcion: 'Aportó recetas con razas autóctonas de maíz mesoamericano',
+      categoria: 'ingrediente_nativo',
+      icono: 'corn',
+      otorgadaEn: new Date('2024-05-01'),
+      referenciaPlatilloId: 'platillo-pozole-001',
+    }
+    const result = InsigniaOtorgadaSchema.parse(insignia)
+    expect(result.codigo).toBe('maiz_nativo')
+    expect(result.categoria).toBe('ingrediente_nativo')
+  })
+})
+
+describe('HistorialPuntosSchema', () => {
+  it('valida un registro de puntos con referencia a platillo', () => {
+    const registro = {
+      id: 'hp-001',
+      usuarioId: 'usr-123',
+      puntos: 50,
+      motivo: 'Aporte de contexto histórico verificado',
+      referenciaTipo: 'platillo',
+      referenciaId: 'platillo-001',
+      createdAt: new Date(),
+    }
+    const result = HistorialPuntosSchema.parse(registro)
+    expect(result.puntos).toBe(50)
+    expect(result.referenciaTipo).toBe('platillo')
+  })
+})
+
+describe('UsuarioPerfilSchema', () => {
+  it('valida un perfil completo con valores por defecto', () => {
+    const perfil = {
+      uid: 'usr-456',
+      email: 'explorador@biteatlas.org',
+      displayName: 'Itzel Cronista',
+      createdAt: new Date(),
+    }
+    const result = UsuarioPerfilSchema.parse(perfil)
+    expect(result.rol).toBe('novicio')
+    expect(result.puntosAntropologicos).toBe(0)
+    expect(result.puntosCuraduria).toBe(0)
+    expect(result.aportesValidados).toBe(0)
+    expect(result.insignias).toEqual([])
+  })
+})
+
+describe('PuenteCulinarioSchema', () => {
+  it('valida un puente culinario entre dos platillos', () => {
+    const puente = {
+      id: 'puente-001',
+      origenPlatilloId: 'platillo-ceviche-peru',
+      destinoPlatilloId: 'platillo-ceviche-ecuador',
+      tipoVinculo: 'migracion',
+      justificacionAntropologica:
+        'Evolución compartida de la técnica de curado en cítricos a lo largo de la costa del Pacífico prehispánico y virreinal.',
+      creadoPorId: 'usr-123',
+      createdAt: new Date(),
+    }
+    const result = PuenteCulinarioSchema.parse(puente)
+    expect(result.estado).toBe('pendiente')
+    expect(result.aprobacionesGuardianes).toEqual([])
+    expect(result.tipoVinculo).toBe('migracion')
+  })
+})
+
+describe('AdaptacionLocalSchema', () => {
+  it('valida una propuesta de adaptación o sustitución comunitaria', () => {
+    const adaptacion = {
+      id: 'adap-001',
+      platilloId: 'platillo-mole-001',
+      autorId: 'usr-789',
+      comunidadRegion: 'Sierra Mixteca',
+      ingredienteOriginal: 'Chile mulato',
+      ingredienteSustituto: 'Chile costeño rojo',
+      justificacionCultural:
+        'En las comunidades mixtecas de la costa se utiliza el chile costeño local por disponibilidad y nota frutal.',
+      createdAt: new Date(),
+    }
+    const result = AdaptacionLocalSchema.parse(adaptacion)
+    expect(result.votosFavor).toBe(0)
+    expect(result.estado).toBe('pendiente')
+    expect(result.ingredienteSustituto).toBe('Chile costeño rojo')
+  })
+})
+
+describe('ValidacionRaicesReviewSchema', () => {
+  it('valida una evaluación multidimensional (Peer Review)', () => {
+    const review = {
+      id: 'rev-001',
+      platilloId: 'platillo-mole-001',
+      autorId: 'usr-999',
+      fidelidadCultural: 5,
+      claridadInstrucciones: 4,
+      riquezaHistorica: 5,
+      comentarioCualitativo:
+        'Excelente recopilación de las fases de tueste y molienda en metate con fuentes etnográficas sólidas.',
+      votoConsenso: 'valida',
+      createdAt: new Date(),
+    }
+    const result = ValidacionRaicesReviewSchema.parse(review)
+    expect(result.fidelidadCultural).toBe(5)
+    expect(result.votoConsenso).toBe('valida')
+  })
+
+  it('rechaza notas fuera del rango 1 a 5', () => {
+    const reviewInvalido = {
+      id: 'rev-002',
+      platilloId: 'platillo-mole-001',
+      autorId: 'usr-999',
+      fidelidadCultural: 6,
+      claridadInstrucciones: 0,
+      riquezaHistorica: 5,
+      comentarioCualitativo: 'Nota fuera de rango',
+      createdAt: new Date(),
+    }
+    expect(() => ValidacionRaicesReviewSchema.parse(reviewInvalido)).toThrow()
   })
 })

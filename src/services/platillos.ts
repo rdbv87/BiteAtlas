@@ -26,6 +26,8 @@ interface CreatePlatilloData {
   video?: string
   varianteDeId?: string
   contextoHistorico?: string
+  leyendaOrigen?: string
+  guarniciones?: string[]
   festividades?: string[]
 }
 
@@ -69,6 +71,8 @@ export async function createPlatillo(data: CreatePlatilloData, userId: string, f
     video: data.video || null,
     varianteDeId: data.varianteDeId || null,
     contextoHistorico: data.contextoHistorico || null,
+    leyendaOrigen: data.leyendaOrigen || null,
+    guarniciones: data.guarniciones || [],
     festividades: data.festividades || [],
     estado: 'pendiente',
     contribuidorId: userId,
@@ -121,6 +125,8 @@ export async function updatePlatillo(
     video: data.video || null,
     varianteDeId: data.varianteDeId || null,
     contextoHistorico: data.contextoHistorico || null,
+    leyendaOrigen: data.leyendaOrigen || null,
+    guarniciones: data.guarniciones || [],
     festividades: data.festividades || [],
     estado: 'pendiente',
     updatedAt: serverTimestamp(),

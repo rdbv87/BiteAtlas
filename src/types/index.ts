@@ -13,6 +13,19 @@ export {
   IngredienteSchema,
   IngredientePlatilloSchema,
   PlatilloSchema,
+  // Gamificación y Comunidad
+  RolUsuarioSchema,
+  InsigniaCategoriaSchema,
+  InsigniaOtorgadaSchema,
+  TipoReferenciaPuntosSchema,
+  HistorialPuntosSchema,
+  UsuarioPerfilSchema,
+  TipoVinculoPuenteSchema,
+  EstadoEntidadComunitariaSchema,
+  PuenteCulinarioSchema,
+  AdaptacionLocalSchema,
+  VotoConsensoReviewSchema,
+  ValidacionRaicesReviewSchema,
 } from './schemas'
 
 export type {
@@ -29,4 +42,17 @@ export type {
   Ingrediente,
   IngredientePlatillo,
   Platillo,
+  // Gamificación y Comunidad
+  RolUsuario,
+  InsigniaCategoria,
+  InsigniaOtorgada,
+  TipoReferenciaPuntos,
+  HistorialPuntos,
+  UsuarioPerfil,
+  TipoVinculoPuente,
+  EstadoEntidadComunitaria,
+  PuenteCulinario,
+  AdaptacionLocal,
+  VotoConsensoReview,
+  ValidacionRaicesReview,
 } from './schemas'

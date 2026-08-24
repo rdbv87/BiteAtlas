@@ -2,9 +2,12 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { Bookmark, Sparkles, Trash2 } from 'lucide-react'
 import { FormularioAporte, type FormData } from '@/components/aportes/FormularioAporte'
 import { useAuth } from '@/services/hooks/useAuth'
+import { useBorradorAporte } from '@/services/hooks/useBorradorAporte'
 import { createPlatillo } from '@/services/platillos'
+import { Button } from '@/components/ui/button'
 
 const GUIA_EDITORIAL = [
   {
@@ -61,11 +64,43 @@ function MapGridBackground() {
   )
 }
 
+function formatearFechaGuardado(isoString?: string): string {
+  if (!isoString) return ''
+  try {
+    const fecha = new Date(isoString)
+    return fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return ''
+  }
+}
+
 export default function AportesPage() {
   const { user, isLoading } = useAuth()
+  const { borrador, tieneBorrador, ultimoGuardado, guardarBorrador, limpiarBorrador } =
+    useBorradorAporte(user?.uid)
+
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [pasoActivo, setPasoActivo] = useState(0)
+  const [borradorRestaurado, setBorradorRestaurado] = useState(false)
+  const [valoresIniciales, setValoresIniciales] = useState<Partial<FormData> | undefined>(undefined)
+  const [formKey, setFormKey] = useState(0)
+
+  const handleRestaurarBorrador = () => {
+    if (!borrador) return
+    setValoresIniciales(borrador.formData)
+    setPasoActivo(borrador.pasoActual || 0)
+    setBorradorRestaurado(true)
+    setFormKey((k) => k + 1)
+  }
+
+  const handleDescartarBorrador = () => {
+    limpiarBorrador()
+    setValoresIniciales(undefined)
+    setPasoActivo(0)
+    setBorradorRestaurado(false)
+    setFormKey((k) => k + 1)
+  }
 
   const onSubmit = async (data: FormData, imageFiles: File[]) => {
     if (!user) return
@@ -75,6 +110,7 @@ export default function AportesPage() {
 
     try {
       await createPlatillo(data, user.uid, imageFiles)
+      limpiarBorrador()
       setSuccessMessage('Tu aporte se envió correctamente y está pendiente de revisión.')
     } catch (error) {
       console.error('Error enviando aporte:', error)
@@ -115,7 +151,7 @@ export default function AportesPage() {
                 Tu cocina también cuenta la historia de tu territorio.
               </h1>
 
-              <p className="mt-6 max-w-[34rem] text-base leading-8 text-[#47615a] sm:text-lg">
+              <p className="mt-6 max-w-136 text-base leading-8 text-[#47615a] sm:text-lg">
                 Para publicar un aporte en BiteAtlas, inicia sesión o crea tu cuenta. El proceso
                 dura pocos minutos y deja un registro cultural valioso para la comunidad.
               </p>
@@ -137,7 +173,7 @@ export default function AportesPage() {
             </section>
 
             <aside className="overflow-hidden rounded-[2rem] border border-[#173c3a]/10 bg-[#173c3a] text-[#f5f1e8] shadow-[0_24px_80px_rgba(23,60,58,0.22)]">
-              <div className="h-full bg-[linear-gradient(160deg,rgba(240,163,91,0.16),rgba(23,60,58,0)_38%),linear-gradient(rgba(245,241,232,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(245,241,232,0.08)_1px,transparent_1px)] bg-[size:auto,64px_64px,64px_64px] p-7 sm:p-9">
+              <div className="h-full bg-[linear-gradient(160deg,rgba(240,163,91,0.16),rgba(23,60,58,0)_38%),linear-gradient(rgba(245,241,232,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(245,241,232,0.08)_1px,transparent_1px)] bg-size-[auto,64px_64px,64px_64px] p-7 sm:p-9">
                 <p className="text-[0.72rem] uppercase tracking-[0.3em] text-[#d4ddd1]">
                   Sello de curaduría
                 </p>
@@ -183,7 +219,7 @@ export default function AportesPage() {
               <h1 className="font-editorial mt-6 text-5xl leading-[0.99] tracking-[-0.03em] sm:text-6xl">
                 Tu aporte puede convertirse en la próxima ficha cultural del atlas.
               </h1>
-              <p className="mt-6 max-w-[34rem] text-base leading-8 text-[#47615a] sm:text-lg">
+              <p className="mt-6 max-w-136 text-base leading-8 text-[#47615a] sm:text-lg">
                 Completa el formulario con precisión culinaria y contexto local. El equipo de
                 curaduría revisará tu envío antes de publicarlo.
               </p>
@@ -245,6 +281,51 @@ export default function AportesPage() {
               </div>
             </div>
 
+            {/* Banner de Detección de Borrador */}
+            {tieneBorrador && !borradorRestaurado && (
+              <div className="mt-6 rounded-2xl border border-[#e8754f]/30 bg-linear-to-br from-[#faf4ec] via-[#fdfbf7] to-[#f4ebe1] p-5 shadow-sm">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8754f]/15 text-[#e8754f]">
+                      <Bookmark className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#b5432a]">
+                        <Sparkles className="h-3 w-3" /> Borrador guardado
+                      </span>
+                      <h4 className="font-editorial text-lg text-[#173c3a]">
+                        {borrador?.nombreOpcional || 'Receta en progreso'}
+                      </h4>
+                      <p className="text-xs text-[#47615a]">
+                        Paso {(borrador?.pasoActual ?? 0) + 1} de 5 • Guardado hoy{' '}
+                        {formatearFechaGuardado(borrador?.guardadoEn)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 flex flex-wrap items-center gap-2.5">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleRestaurarBorrador}
+                    className="rounded-full bg-[#173c3a] px-5 text-xs text-[#f5f1e8] hover:bg-[#234c49]"
+                  >
+                    Continuar borrador
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDescartarBorrador}
+                    className="rounded-full px-4 text-xs text-[#b5432a] hover:bg-[#fdf1ec]"
+                  >
+                    <Trash2 className="mr-1 h-3.5 w-3.5" />
+                    Descartar y empezar de cero
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <p className="mt-4 text-sm leading-7 text-[#47615a]">
               Completa cada bloque con detalle y claridad. Tu contenido se publica cuando termine la
               revisión editorial.
@@ -252,9 +333,14 @@ export default function AportesPage() {
 
             <div className="mt-8">
               <FormularioAporte
+                key={formKey}
                 onSubmit={onSubmit}
                 onCancel={onCancel}
                 onStepChange={setPasoActivo}
+                onSaveDraft={guardarBorrador}
+                initialValues={valoresIniciales}
+                initialStep={pasoActivo}
+                draftSavedAt={ultimoGuardado}
               />
             </div>
 

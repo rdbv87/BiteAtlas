@@ -50,11 +50,48 @@ service cloud.firestore {
       allow write: if false;
     }
     
-    // Aportes pendientes - escritura para contribuidores autenticados (futuro)
+    // Aportes pendientes - escritura para contribuidores autenticados
     match /aportes/{aporteId} {
       allow read: if resource.data.contribuidorId == request.auth.uid;
-      allow create: if true; // Permitir creación sin auth por ahora
+      allow create: if true;
       allow update, delete: if resource.data.contribuidorId == request.auth.uid;
+    }
+
+    // Perfiles de Usuario y Gamificación
+    match /usuarios/{userId} {
+      // Lectura permitida para usuarios autenticados (para mostrar rangos y avatares en el atlas)
+      allow read: if true;
+      // Creación y edición permitida para el propio usuario
+      allow create, update: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if isAdmin();
+
+      // Historial de Puntos Antropológicos
+      match /historialPuntos/{puntoId} {
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        allow write: if isSignedIn() && request.auth.uid == userId;
+      }
+    }
+
+    // Subcolecciones comunitarias en Platillos
+    match /platillos/{platilloId}/validacionesRaices/{valId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.usuarioId == request.auth.uid;
+      allow update, delete: if isSignedIn() && (resource.data.usuarioId == request.auth.uid || isAdmin());
+    }
+
+    match /platillos/{platilloId}/puentesCulinarios/{puenteId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.usuarioId == request.auth.uid;
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn() && (resource.data.usuarioId == request.auth.uid || isAdmin());
+    }
+
+    match /platillos/{platilloId}/adaptacionesLocales/{adaptacionId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.usuarioId == request.auth.uid;
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn() && (resource.data.usuarioId == request.auth.uid || isAdmin());
     }
   }
 }
+

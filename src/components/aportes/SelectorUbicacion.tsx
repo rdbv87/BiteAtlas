@@ -1,10 +1,12 @@
 'use client'
 
-import { MapContainer, TileLayer, CircleMarker, useMapEvents } from 'react-leaflet'
+import { useEffect } from 'react'
+import { MapContainer, TileLayer, CircleMarker, useMapEvents, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 
 interface SelectorUbicacionProps {
   center: [number, number]
+  zoom?: number
   value?: { lat: number; lng: number }
   onChange: (location: { lat: number; lng: number }) => void
 }
@@ -19,14 +21,45 @@ function LocationClickHandler({ onChange }: Pick<SelectorUbicacionProps, 'onChan
   return null
 }
 
-export function SelectorUbicacion({ center, value, onChange }: SelectorUbicacionProps) {
+function MapViewController({
+  center,
+  zoom,
+  value,
+}: {
+  center: [number, number]
+  zoom: number
+  value?: { lat: number; lng: number }
+}) {
+  const map = useMap()
+  const centerLat = center[0]
+  const centerLng = center[1]
+  const valueLat = value?.lat
+  const valueLng = value?.lng
+
+  useEffect(() => {
+    if (valueLat != null && valueLng != null) {
+      map.setView([valueLat, valueLng], Math.max(zoom, 10), { animate: true })
+    } else {
+      map.flyTo([centerLat, centerLng], zoom, {
+        duration: 1.2,
+        easeLinearity: 0.25,
+      })
+    }
+  }, [centerLat, centerLng, zoom, valueLat, valueLng, map])
+
+  return null
+}
+
+export function SelectorUbicacion({ center, zoom = 6, value, onChange }: SelectorUbicacionProps) {
+  const targetCenter: [number, number] = value ? [value.lat, value.lng] : center
+  const targetZoom = value ? Math.max(zoom, 10) : zoom
+
   return (
     <div className="overflow-hidden rounded-2xl border border-[#173c3a]/15 bg-[#dce5dd]">
       <MapContainer
-        key={`${center[0]}-${center[1]}`}
-        center={value ? [value.lat, value.lng] : center}
-        zoom={value ? 11 : 7}
-        minZoom={3}
+        center={targetCenter}
+        zoom={targetZoom}
+        minZoom={2}
         maxZoom={16}
         scrollWheelZoom
         className="h-64 w-full"
@@ -37,6 +70,7 @@ export function SelectorUbicacion({ center, value, onChange }: SelectorUbicacion
           url="https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png"
         />
         <LocationClickHandler onChange={onChange} />
+        <MapViewController center={center} zoom={zoom} value={value} />
         {value ? (
           <CircleMarker
             center={[value.lat, value.lng]}

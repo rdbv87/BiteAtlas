@@ -5,7 +5,7 @@ import { UseFormReturn } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useLandingData } from '@/services/hooks/useLandingData'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Sparkles } from 'lucide-react'
 import type { FormData } from './FormularioAporte'
 
 // Paso 5: Informacion cultural - contexto historico, variante de otra receta, festividades asociadas
@@ -93,13 +93,33 @@ export function PasoCultural({ form }: PasoCulturalProps) {
         <label className="text-sm font-medium text-[#173c3a]">Contexto histórico (opcional)</label>
         <textarea
           {...register('contextoHistorico')}
-          rows={5}
+          rows={4}
           className={textareaClassName}
-          placeholder="Cuenta la historia detrás de este platillo, su origen y evolución..."
+          placeholder="Cuenta los hechos históricos detrás de este platillo, su época de origen y evolución..."
         />
         <p className="text-xs text-[#47615a]">
-          Comparte la historia que hace único a este platillo.
+          Registros históricos documentados sobre la evolución de esta receta.
         </p>
+      </div>
+
+      <div className="space-y-2 rounded-2xl border border-[#e8754f]/20 bg-[#faf6f0] p-5 sm:p-6">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-[#e8754f]" />
+          <label className="text-sm font-semibold text-[#173c3a]">
+            Leyenda o mito de origen (opcional)
+          </label>
+        </div>
+        <p className="text-xs text-[#47615a] leading-relaxed">
+          Muchas comidas tradicionales nacen de anécdotas populares, mitos o relatos orales
+          transmitidos por generaciones que no cuentan con evidencia científica pero forman parte
+          del alma comunitaria.
+        </p>
+        <textarea
+          {...register('leyendaOrigen')}
+          rows={4}
+          className={textareaClassName}
+          placeholder="¿Qué cuenta la tradición popular o los abuelos sobre cómo nació este platillo? (Ej. 'Se dice que un monje olvidó la olla al fuego y los dioses aromatizaron el guiso...')"
+        />
       </div>
 
       <div className="space-y-2">

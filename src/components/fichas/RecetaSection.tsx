@@ -1,13 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import { UtensilsCrossed } from 'lucide-react'
 
 interface RecetaSectionProps {
   instrucciones: string[]
   ingredientes: { ingredienteId: string; cantidad: string; unidad: string }[]
+  guarniciones?: string[]
 }
 
-export function RecetaSection({ instrucciones, ingredientes }: RecetaSectionProps) {
+export function RecetaSection({ instrucciones, ingredientes, guarniciones }: RecetaSectionProps) {
   const [pasosCompletados, setPasosCompletados] = useState<number[]>([])
 
   const alternarPaso = (index: number) => {
@@ -36,6 +38,26 @@ export function RecetaSection({ instrucciones, ingredientes }: RecetaSectionProp
           </ul>
         </div>
       </div>
+
+      {/* Guarniciones y acompañantes */}
+      {guarniciones && guarniciones.length > 0 && (
+        <div className="rounded-2xl border border-[#173c3a]/10 bg-[#f9f7f2] p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <UtensilsCrossed className="w-4 h-4 text-[#e8754f]" />
+            <h4 className="text-sm font-semibold text-[#173c3a]">Acompañamientos tradicionales</h4>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {guarniciones.map((guarnicion, idx) => (
+              <span
+                key={idx}
+                className="inline-flex items-center rounded-full border border-[#173c3a]/15 bg-white px-3.5 py-1.5 text-xs font-medium text-[#173c3a] shadow-sm"
+              >
+                {guarnicion}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Instrucciones */}
       <div>

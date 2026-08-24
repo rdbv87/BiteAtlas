@@ -4,10 +4,20 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { FirebaseError } from 'firebase/app'
 import { collection, getDocs, query, where } from 'firebase/firestore'
-import { ArrowLeft, CheckCircle2, Clock3, Edit3, XCircle } from 'lucide-react'
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Clock3,
+  Edit3,
+  XCircle,
+  Bookmark,
+  Sparkles,
+  Trash2,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { firestore } from '@/services/firebase'
 import { useAuth } from '@/services/hooks/useAuth'
+import { useBorradorAporte } from '@/services/hooks/useBorradorAporte'
 import { updatePlatillo } from '@/services/platillos'
 import { FormularioAporte, type FormData } from '@/components/aportes/FormularioAporte'
 import type { Platillo } from '@/types'
@@ -27,6 +37,7 @@ function formatDate(value: unknown) {
 
 export default function MisAportesPage() {
   const { user, isLoading: isAuthLoading } = useAuth()
+  const { borrador, tieneBorrador, limpiarBorrador } = useBorradorAporte(user?.uid)
   const [aportes, setAportes] = useState<Platillo[]>([])
   const [aporteEditando, setAporteEditando] = useState<Platillo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -149,6 +160,8 @@ export default function MisAportesPage() {
                 video: aporteEditando.video,
                 varianteDeId: aporteEditando.varianteDeId,
                 contextoHistorico: aporteEditando.contextoHistorico,
+                leyendaOrigen: aporteEditando.leyendaOrigen,
+                guarniciones: aporteEditando.guarniciones,
                 festividades: aporteEditando.festividades,
               }}
               onSubmit={guardarEdicion}
@@ -186,9 +199,51 @@ export default function MisAportesPage() {
           </p>
         ) : null}
 
+        {/* Tarjeta de borrador pendiente si existe */}
+        {tieneBorrador && (
+          <div className="mt-8 rounded-2xl border border-[#e8754f]/30 bg-linear-to-br from-[#faf4ec] via-[#fdfbf7] to-[#f4ebe1] p-6 shadow-sm">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#e8754f]/15 text-[#e8754f]">
+                  <Bookmark className="h-6 w-6" />
+                </div>
+                <div>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#b5432a]">
+                    <Sparkles className="h-3 w-3" /> Borrador en progreso
+                  </span>
+                  <h3 className="font-editorial text-2xl text-[#173c3a]">
+                    {borrador?.nombreOpcional || 'Aporte no finalizado'}
+                  </h3>
+                  <p className="text-xs text-[#47615a]">
+                    Paso {(borrador?.pasoActual ?? 0) + 1} de 5 • Guardado en tu navegador
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/aportes"
+                  className="inline-flex h-10 items-center justify-center rounded-full bg-[#173c3a] px-5 text-xs font-semibold text-[#f5f1e8] hover:bg-[#234c49] transition-colors"
+                >
+                  Continuar editando
+                </Link>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={limpiarBorrador}
+                  className="rounded-full px-4 text-xs text-[#b5432a] hover:bg-[#fdf1ec]"
+                >
+                  <Trash2 className="mr-1 h-3.5 w-3.5" />
+                  Descartar
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {aportes.length === 0 ? (
           <div className="mt-10 border border-dashed border-[#173c3a]/20 bg-white/60 p-10 text-center">
-            <p className="font-editorial text-3xl">Todavía no tienes aportes.</p>
+            <p className="font-editorial text-3xl">Todavía no tienes aportes enviados.</p>
             <Link href="/aportes" className="mt-5 inline-flex text-sm font-semibold text-[#e8754f]">
               Crear mi primer aporte
             </Link>

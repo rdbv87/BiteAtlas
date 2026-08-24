@@ -71,7 +71,7 @@ export function PasoReceta({ form }: PasoRecetaProps) {
         {pasos.map((paso, index) => (
           <div key={index} className="rounded-2xl border border-[#173c3a]/10 bg-white p-4 sm:p-5">
             <div className="flex items-start gap-3">
-              <span className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#e8754f] text-sm font-semibold text-white">
+              <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e8754f] text-sm font-semibold text-white">
                 {index + 1}
               </span>
               <div className="flex-1">
@@ -97,6 +97,18 @@ export function PasoReceta({ form }: PasoRecetaProps) {
             </div>
           </div>
         ))}
+
+        {pasos.length > 0 && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={agregarPaso}
+            className="mt-3 w-full h-11 rounded-2xl border-dashed border-[#173c3a]/25 bg-white/60 text-sm font-semibold text-[#173c3a] hover:border-[#173c3a]/50 hover:bg-white transition-colors"
+          >
+            <Plus className="mr-1.5 w-4 h-4 text-[#e8754f]" />
+            Agregar siguiente paso
+          </Button>
+        )}
       </div>
 
       {pasos.length === 0 && (

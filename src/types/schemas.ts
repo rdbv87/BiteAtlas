@@ -1,14 +1,62 @@
 import { z } from 'zod'
 
 // ═══════════════════════════════════════════════════════════════════════════
+// UTILIDADES DE VALIDACIÓN - Fechas compatibles con Firestore Timestamp
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const FechaFirestoreSchema = z.preprocess((val) => {
+  if (val === null || val === undefined) return undefined
+  if (val instanceof Date) return isNaN(val.getTime()) ? undefined : val
+  if (
+    typeof val === 'object' &&
+    val !== null &&
+    'toDate' in val &&
+    typeof (val as { toDate: () => unknown }).toDate === 'function'
+  ) {
+    try {
+      const d = (val as { toDate: () => Date }).toDate()
+      return isNaN(d.getTime()) ? undefined : d
+    } catch {
+      return undefined
+    }
+  }
+  if (typeof val === 'string' || typeof val === 'number') {
+    const d = new Date(val)
+    return isNaN(d.getTime()) ? undefined : d
+  }
+  return val
+}, z.date())
+
+export const FechaFirestoreOpcionalSchema = z.preprocess((val) => {
+  if (val === null || val === undefined) return undefined
+  if (val instanceof Date) return isNaN(val.getTime()) ? undefined : val
+  if (
+    typeof val === 'object' &&
+    val !== null &&
+    'toDate' in val &&
+    typeof (val as { toDate: () => unknown }).toDate === 'function'
+  ) {
+    try {
+      const d = (val as { toDate: () => Date }).toDate()
+      return isNaN(d.getTime()) ? undefined : d
+    } catch {
+      return undefined
+    }
+  }
+  if (typeof val === 'string' || typeof val === 'number') {
+    const d = new Date(val)
+    return isNaN(d.getTime()) ? undefined : d
+  }
+  return val
+}, z.date().optional())
+
+// ═══════════════════════════════════════════════════════════════════════════
 // ENUMS - Valores posibles para campos categoricos
 // ═══════════════════════════════════════════════════════════════════════════
 
 // Valida los continentes disponibles en la aplicacion
-// Valida los continentes disponibles en la aplicacion
 export const ContinenteSchema = z.enum(['africa', 'america', 'asia', 'europa', 'oceania'])
 
-// Valida el nivel de dificultad de una receta
 // Valida el nivel de dificultad de una receta
 export const DificultadSchema = z.enum(['facil', 'medio', 'dificil'])
 
@@ -24,14 +72,11 @@ export const CategoriaIngredienteSchema = z.enum([
 ])
 
 // Estados de moderacion de un platillo (flujo: pendiente -> publicado/rechazado)
-// Estados de moderacion de un platillo (flujo: pendiente -> publicado/rechazado)
 export const EstadoPlatilloSchema = z.enum(['pendiente', 'rechazado', 'publicado'])
 
 // Tipo de video: short (TikTok-like) o normal (YouTube standard)
-// Tipo de video: short (TikTok-like) o normal (YouTube standard)
 export const TipoVideoRecetaSchema = z.enum(['short', 'normal'])
 
-// Estado de revision de una imagen: pendiente de revision, aprobada o rechazada
 // Estado de revision de una imagen: pendiente de revision, aprobada o rechazada
 export const EstadoImagenRecetaSchema = z.enum(['pendiente', 'aprobada', 'rechazada'])
 
@@ -45,7 +90,7 @@ export const ImagenRecetaSchema = z.object({
   tituloFuente: z.string().min(1),
   licencia: z.string().min(1),
   estado: EstadoImagenRecetaSchema,
-  revisadoEn: z.coerce.date().optional(),
+  revisadoEn: FechaFirestoreOpcionalSchema,
 })
 
 // Valida datos de un video de receta (principalmente YouTube)
@@ -139,12 +184,144 @@ export const PlatilloSchema = z.object({
   video: z.string().url().optional(),
   varianteDeId: z.string().optional(),
   contextoHistorico: z.string().optional(),
+  leyendaOrigen: z.string().optional(),
+  guarniciones: z.array(z.string().min(1)).optional(),
   festividades: z.array(z.string()).optional(),
   videos: z.array(VideoRecetaSchema).max(2).optional(),
   estado: EstadoPlatilloSchema.default('pendiente'),
   contribuidorId: z.string().min(1).optional(),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date().optional(),
+  createdAt: FechaFirestoreSchema,
+  updatedAt: FechaFirestoreOpcionalSchema,
+})
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GAMIFICACIÓN Y COMUNIDAD - Guardianes, Puentes Culinarios y Peer Review
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Rangos antropologicos de reputacion de la comunidad
+export const RolUsuarioSchema = z.enum(['novicio', 'cronista', 'guardian', 'maestro'])
+
+// Categorias tematicas para el otorgamiento de insignias
+export const InsigniaCategoriaSchema = z.enum([
+  'region',
+  'tecnica_ancestral',
+  'ingrediente_nativo',
+  'antropologia',
+])
+
+// Estructura de una insignia otorgada al usuario
+export const InsigniaOtorgadaSchema = z.object({
+  id: z.string().min(1),
+  codigo: z.string().min(1),
+  nombre: z.string().min(1).max(100),
+  descripcion: z.string().min(1).max(300),
+  categoria: InsigniaCategoriaSchema,
+  icono: z.string().min(1),
+  otorgadaEn: FechaFirestoreSchema,
+  referenciaPlatilloId: z.string().optional(),
+})
+
+// Origen / motivo de la asignacion o deduccion de puntos
+export const TipoReferenciaPuntosSchema = z.enum([
+  'platillo',
+  'review',
+  'curaduria',
+  'puente',
+  'adaptacion',
+])
+
+// Registro individual de puntos acumulados en el historial
+export const HistorialPuntosSchema = z.object({
+  id: z.string().min(1),
+  usuarioId: z.string().min(1),
+  puntos: z.number().int(),
+  motivo: z.string().min(1),
+  referenciaTipo: TipoReferenciaPuntosSchema,
+  referenciaId: z.string().optional(),
+  createdAt: FechaFirestoreSchema,
+})
+
+// Perfil extendido del usuario en Firestore (usuarios/{uid})
+export const UsuarioPerfilSchema = z.object({
+  uid: z.string().min(1),
+  email: z.string().email(),
+  displayName: z.string().min(1).max(100),
+  photoURL: z.preprocess(
+    (val) => (typeof val === 'string' && val.trim().length > 0 ? val.trim() : undefined),
+    z.string().optional()
+  ),
+  rol: RolUsuarioSchema.default('novicio'),
+  puntosAntropologicos: z.number().int().nonnegative().default(0),
+  puntosCuraduria: z.number().int().nonnegative().default(0),
+  aportesValidados: z.number().int().nonnegative().default(0),
+  insignias: z.array(InsigniaOtorgadaSchema).default([]),
+  regionesEspecialidad: z.array(z.string()).optional(),
+  createdAt: FechaFirestoreSchema,
+  updatedAt: FechaFirestoreOpcionalSchema,
+})
+
+// Tipos de conexion antropológica y culinaria entre dos recetas
+export const TipoVinculoPuenteSchema = z.enum([
+  'migracion',
+  'evolucion_historica',
+  'ingrediente_compartido',
+  'tecnica_comun',
+])
+
+// Estados de aprobacion para propuestas comunitarias
+export const EstadoEntidadComunitariaSchema = z.enum(['pendiente', 'aprobado', 'rechazado'])
+
+// Red de Recetas / Puentes Culinarios (puentesCulinarios/{id})
+export const PuenteCulinarioSchema = z.object({
+  id: z.string().min(1),
+  origenPlatilloId: z.string().min(1),
+  destinoPlatilloId: z.string().min(1),
+  tipoVinculo: TipoVinculoPuenteSchema,
+  justificacionAntropologica: z.string().min(10).max(2000),
+  fuentes: z.array(z.string().min(1)).optional(),
+  creadoPorId: z.string().min(1),
+  creadoPorNombre: z.string().optional(),
+  estado: EstadoEntidadComunitariaSchema.default('pendiente'),
+  aprobacionesGuardianes: z.array(z.string()).default([]),
+  createdAt: FechaFirestoreSchema,
+  updatedAt: FechaFirestoreOpcionalSchema,
+})
+
+// Sugerencias y Adaptaciones Locales (platillos/{id}/adaptacionesLocales/{id})
+export const AdaptacionLocalSchema = z.object({
+  id: z.string().min(1),
+  platilloId: z.string().min(1),
+  autorId: z.string().min(1),
+  autorNombre: z.string().optional(),
+  comunidadRegion: z.string().min(1).max(100),
+  ingredienteOriginal: z.string().optional(),
+  ingredienteSustituto: z.string().optional(),
+  tecnicaVariante: z.string().optional(),
+  justificacionCultural: z.string().min(10).max(1500),
+  votosFavor: z.number().int().nonnegative().default(0),
+  votosContra: z.number().int().nonnegative().default(0),
+  estado: EstadoEntidadComunitariaSchema.default('pendiente'),
+  aprobacionesGuardianes: z.array(z.string()).default([]),
+  createdAt: FechaFirestoreSchema,
+  updatedAt: FechaFirestoreOpcionalSchema,
+})
+
+// Dictamen de consenso para el Peer Review
+export const VotoConsensoReviewSchema = z.enum(['valida', 'requiere_ajustes', 'no_autentica'])
+
+// Evaluación multidimensional ("Validación de Raíces" - Peer Review Culinario)
+export const ValidacionRaicesReviewSchema = z.object({
+  id: z.string().min(1),
+  platilloId: z.string().min(1),
+  autorId: z.string().min(1),
+  autorNombre: z.string().optional(),
+  fidelidadCultural: z.number().int().min(1).max(5),
+  claridadInstrucciones: z.number().int().min(1).max(5),
+  riquezaHistorica: z.number().int().min(1).max(5),
+  comentarioCualitativo: z.string().min(10).max(2000),
+  referencias: z.array(z.string().min(1)).optional(),
+  votoConsenso: VotoConsensoReviewSchema.default('valida'),
+  createdAt: FechaFirestoreSchema,
 })
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -166,3 +343,17 @@ export type Region = z.infer<typeof RegionSchema>
 export type Ingrediente = z.infer<typeof IngredienteSchema>
 export type IngredientePlatillo = z.infer<typeof IngredientePlatilloSchema>
 export type Platillo = z.infer<typeof PlatilloSchema>
+
+// Tipos inferidos de Gamificación y Comunidad
+export type RolUsuario = z.infer<typeof RolUsuarioSchema>
+export type InsigniaCategoria = z.infer<typeof InsigniaCategoriaSchema>
+export type InsigniaOtorgada = z.infer<typeof InsigniaOtorgadaSchema>
+export type TipoReferenciaPuntos = z.infer<typeof TipoReferenciaPuntosSchema>
+export type HistorialPuntos = z.infer<typeof HistorialPuntosSchema>
+export type UsuarioPerfil = z.infer<typeof UsuarioPerfilSchema>
+export type TipoVinculoPuente = z.infer<typeof TipoVinculoPuenteSchema>
+export type EstadoEntidadComunitaria = z.infer<typeof EstadoEntidadComunitariaSchema>
+export type PuenteCulinario = z.infer<typeof PuenteCulinarioSchema>
+export type AdaptacionLocal = z.infer<typeof AdaptacionLocalSchema>
+export type VotoConsensoReview = z.infer<typeof VotoConsensoReviewSchema>
+export type ValidacionRaicesReview = z.infer<typeof ValidacionRaicesReviewSchema>

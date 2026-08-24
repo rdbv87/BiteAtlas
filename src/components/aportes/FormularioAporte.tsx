@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Check } from 'lucide-react'
+import { Check, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PasoBasico } from './PasoBasico'
 import { PasoIngredientes } from './PasoIngredientes'
@@ -30,7 +30,7 @@ const esquemaPaso1 = z.object({
   porciones: z.number().min(1, 'Las porciones deben ser al menos 1'),
 })
 
-// Paso 2: Lista de ingredientes con cantidades y unidades
+// Paso 2: Lista de ingredientes con cantidades y unidades, más guarniciones/acompañantes sugeridos
 const esquemaPaso2 = z.object({
   ingredientes: z
     .array(
@@ -41,6 +41,7 @@ const esquemaPaso2 = z.object({
       })
     )
     .min(1, 'Agrega al menos un ingrediente'),
+  guarniciones: z.array(z.string().min(1)).optional(),
 })
 
 // Paso 3: Instrucciones paso-a-paso de preparacion
@@ -56,10 +57,11 @@ const esquemaPaso4 = z.object({
   video: z.string().url().optional(),
 })
 
-// Paso 5: Informacion cultural adicional (variante de otra receta, contexto historico, festividades)
+// Paso 5: Informacion cultural adicional (variante de otra receta, contexto historico, leyenda de origen, festividades)
 const esquemaPaso5 = z.object({
   varianteDeId: z.string().optional(),
   contextoHistorico: z.string().optional(),
+  leyendaOrigen: z.string().optional(),
   festividades: z.array(z.string()).optional(),
 })
 
@@ -74,26 +76,14 @@ export type FormData = z.infer<typeof esquemaCompleto>
 const PASOS = ['Básico', 'Ingredientes', 'Receta', 'Media', 'Cultural']
 
 // FormularioAporte: Componente orquestador del flujo multi-paso para crear/editar platillos.
-// Flujo de 5 pasos:
-// 1. Basico: Pais, region, nombre, descripcion, dificultad, tiempo, porciones
-// 2. Ingredientes: Lista de ingredientes con cantidades y unidades
-// 3. Receta: Instrucciones paso-a-paso
-// 4. Media: Imagenes y video (opcional)
-// 5. Cultural: Contexto historico, variante de otra receta, festividades asociadas
-//
-// Validacion: Cada paso valida sus campos antes de permitir avanzar
-// Maneja: Estado local del paso actual, files de imagen
-// Props:
-// - onSubmit: Callback cuando se completa el formulario
-// - onCancel: Callback cuando usuario cancela
-// - onStepChange: Callback opcional cuando cambia el paso
-// - initialValues: Valores pre-cargados (para edicion)
-// - submitLabel: Etiqueta del boton final (default: 'Enviar aporte')
 interface FormularioAporteProps {
   onSubmit: (data: FormData, imageFiles: File[]) => void
   onCancel: () => void
   onStepChange?: (step: number) => void
+  onSaveDraft?: (data: Partial<FormData>, step: number) => void
   initialValues?: Partial<FormData>
+  initialStep?: number
+  draftSavedAt?: Date | null
   submitLabel?: string
 }
 
@@ -101,10 +91,13 @@ export function FormularioAporte({
   onSubmit,
   onCancel,
   onStepChange,
+  onSaveDraft,
   initialValues,
+  initialStep = 0,
+  draftSavedAt,
   submitLabel = 'Enviar aporte',
 }: FormularioAporteProps) {
-  const [pasoActual, setPasoActual] = useState(0)
+  const [pasoActual, setPasoActual] = useState(initialStep)
   const [imageFiles, setImageFiles] = useState<File[]>([])
 
   const form = useForm<FormData>({
@@ -120,15 +113,28 @@ export function FormularioAporte({
       tiempoPreparacion: 30,
       porciones: 4,
       ingredientes: [],
+      guarniciones: [],
       instrucciones: [],
       imagenes: [],
       video: '',
       varianteDeId: '',
       contextoHistorico: '',
+      leyendaOrigen: '',
       festividades: [],
       ...initialValues,
     },
   })
+
+  // Auto-guardado reactivo en cambios del formulario (con debounce)
+  useEffect(() => {
+    if (!onSaveDraft) return
+
+    const subscription = form.watch((values) => {
+      onSaveDraft(values as Partial<FormData>, pasoActual)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [form, pasoActual, onSaveDraft])
 
   const siguiente = async () => {
     let valid = false
@@ -160,6 +166,7 @@ export function FormularioAporte({
         const nextStep = pasoActual + 1
         setPasoActual(nextStep)
         onStepChange?.(nextStep)
+        onSaveDraft?.(form.getValues(), nextStep)
       }
     }
   }
@@ -169,7 +176,15 @@ export function FormularioAporte({
       const previousStep = pasoActual - 1
       setPasoActual(previousStep)
       onStepChange?.(previousStep)
+      onSaveDraft?.(form.getValues(), previousStep)
     }
+  }
+
+  const handleGuardarYSalir = () => {
+    if (onSaveDraft) {
+      onSaveDraft(form.getValues(), pasoActual)
+    }
+    onCancel()
   }
 
   const handleSubmit = form.handleSubmit((data) => {
@@ -179,7 +194,18 @@ export function FormularioAporte({
   return (
     <div className="w-full space-y-7">
       <div className="space-y-5">
-        <p className="text-xs uppercase tracking-[0.24em] text-[#173c3a]/70">Progreso de edición</p>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs uppercase tracking-[0.24em] text-[#173c3a]/70">
+            Progreso de edición
+          </p>
+          {draftSavedAt && (
+            <div className="flex items-center gap-1.5 text-xs text-[#2c7a7b]">
+              <Save className="h-3.5 w-3.5" />
+              <span>Borrador guardado</span>
+            </div>
+          )}
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-5 sm:gap-2">
           {PASOS.map((paso, index) => {
             const isActive = index === pasoActual
@@ -200,7 +226,7 @@ export function FormularioAporte({
                     {isCompleted ? <Check className="h-4 w-4" /> : index + 1}
                   </div>
                   {index < PASOS.length - 1 ? (
-                    <div className="absolute left-10 top-1/2 hidden h-[1px] w-[calc(100%-2.25rem)] -translate-y-1/2 bg-[#173c3a]/15 sm:block" />
+                    <div className="absolute left-10 top-1/2 hidden h-px w-[calc(100%-2.25rem)] -translate-y-1/2 bg-[#173c3a]/15 sm:block" />
                   ) : null}
                 </div>
                 <p
@@ -216,7 +242,7 @@ export function FormularioAporte({
         </div>
       </div>
 
-      <div className="min-h-[420px] rounded-[1.5rem] border border-[#173c3a]/10 bg-[#fbf9f5] p-5 sm:p-6">
+      <div className="min-h-105 rounded-[1.5rem] border border-[#173c3a]/10 bg-[#fbf9f5] p-5 sm:p-6">
         {pasoActual === 0 && <PasoBasico form={form} />}
         {pasoActual === 1 && <PasoIngredientes form={form} />}
         {pasoActual === 2 && <PasoReceta form={form} />}
@@ -226,14 +252,29 @@ export function FormularioAporte({
         {pasoActual === 4 && <PasoCultural form={form} />}
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-[#173c3a]/10 pt-6 sm:flex-row sm:justify-between">
-        <Button
-          variant="outline"
-          onClick={pasoActual === 0 ? onCancel : anterior}
-          className="h-11 rounded-full border-[#173c3a]/20 bg-[#f5f1e8] px-6 text-[#173c3a] transition-colors hover:bg-[#ebf0e7]"
-        >
-          {pasoActual === 0 ? 'Volver' : 'Paso anterior'}
-        </Button>
+      <div className="flex flex-col gap-3 border-t border-[#173c3a]/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={pasoActual === 0 ? onCancel : anterior}
+            className="h-11 rounded-full border-[#173c3a]/20 bg-[#f5f1e8] px-6 text-[#173c3a] transition-colors hover:bg-[#ebf0e7]"
+          >
+            {pasoActual === 0 ? 'Volver' : 'Paso anterior'}
+          </Button>
+
+          {onSaveDraft && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleGuardarYSalir}
+              className="h-11 rounded-full px-5 text-xs font-semibold text-[#47615a] hover:bg-[#173c3a]/5 hover:text-[#173c3a]"
+            >
+              <Save className="mr-1.5 h-4 w-4 text-[#e8754f]" />
+              Guardar y salir
+            </Button>
+          )}
+        </div>
+
         {pasoActual === PASOS.length - 1 ? (
           <Button
             onClick={handleSubmit}

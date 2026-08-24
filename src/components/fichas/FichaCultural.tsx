@@ -2,12 +2,17 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Clock, Users, ChefHat, Play } from 'lucide-react'
+import { X, Clock, Users, ChefHat, Play, GitFork, ArrowRightLeft, Award } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { RecetaSection } from './RecetaSection'
 import { HistoriaSection } from './HistoriaSection'
 import { FestividadesSection } from './FestividadesSection'
+import { PuentesCulinariosSection } from './PuentesCulinariosSection'
+import { AdaptacionesLocalesSection } from './AdaptacionesLocalesSection'
+import { ValidacionRaicesSection } from './ValidacionRaicesSection'
 import { VideoPlayer } from './Secciones/VideoPlayer'
+import { useComunidadPlatillo } from '@/services/hooks/useComunidadPlatillo'
+import { useAuth } from '@/services/hooks/useAuth'
 import type { Platillo } from '@/types'
 
 interface FichaCulturalProps {
@@ -16,20 +21,31 @@ interface FichaCulturalProps {
   onClose: () => void
 }
 
-type TabId = 'receta' | 'historia' | 'festival' | 'video'
-
-// FichaCultural: Modal interactivo que presenta la receta completa con multiples secciones.
-// Secciones disponibles: Receta (ingredientes + instrucciones), Historia, Festividades, Video
-// Animaciones: Usa framer-motion para transiciones suaves entre tabs
-const tabs: { id: TabId; label: string }[] = [
-  { id: 'receta', label: 'Receta' },
-  { id: 'historia', label: 'Historia' },
-  { id: 'festival', label: 'Festividades' },
-  { id: 'video', label: 'Video' },
-]
+type TabId = 'receta' | 'historia' | 'puentes' | 'adaptaciones' | 'raices' | 'festival' | 'video'
 
 export function FichaCultural({ platillo, isOpen, onClose }: FichaCulturalProps) {
   const [activeTab, setActiveTab] = useState<TabId>('receta')
+  const { user } = useAuth()
+  const {
+    puentes,
+    adaptaciones,
+    validaciones,
+    metricas,
+    proponerPuente,
+    proponerAdaptacion,
+    votarAdaptacion,
+    enviarValidacionRaices,
+  } = useComunidadPlatillo(platillo ? platillo.id : null)
+
+  const tabs: { id: TabId; label: string; count?: number }[] = [
+    { id: 'receta', label: 'Receta' },
+    { id: 'historia', label: 'Historia' },
+    { id: 'puentes', label: 'Puentes', count: puentes.length },
+    { id: 'adaptaciones', label: 'Adaptaciones', count: adaptaciones.length },
+    { id: 'raices', label: 'Raíces', count: validaciones.length },
+    { id: 'festival', label: 'Festividades' },
+    { id: 'video', label: 'Video' },
+  ]
 
   return (
     <AnimatePresence>
@@ -40,7 +56,7 @@ export function FichaCultural({ platillo, isOpen, onClose }: FichaCulturalProps)
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-[1001]"
+            className="fixed inset-0 bg-black/50 z-1001"
             onClick={onClose}
           />
 
@@ -50,7 +66,7 @@ export function FichaCultural({ platillo, isOpen, onClose }: FichaCulturalProps)
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed inset-y-0 right-0 w-full max-w-lg bg-background z-[1002] shadow-2xl flex flex-col"
+            className="fixed inset-y-0 right-0 w-full max-w-lg bg-background z-1002 shadow-2xl flex flex-col"
           >
             {/* Header */}
             <div className="relative h-64 shrink-0">
@@ -65,7 +81,7 @@ export function FichaCultural({ platillo, isOpen, onClose }: FichaCulturalProps)
                   <ChefHat className="w-16 h-16 text-muted-foreground/30" />
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
 
               {/* Close button */}
               <Button
@@ -103,19 +119,24 @@ export function FichaCultural({ platillo, isOpen, onClose }: FichaCulturalProps)
             </div>
 
             {/* Tabs */}
-            <div className="border-b shrink-0">
-              <div className="flex">
+            <div className="border-b shrink-0 overflow-x-auto no-scrollbar">
+              <div className="flex min-w-max">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 py-3 px-4 text-sm font-medium transition-colors relative ${
+                    className={`py-3 px-3.5 text-xs font-medium transition-colors relative flex items-center gap-1.5 ${
                       activeTab === tab.id
                         ? 'text-primary'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    {tab.label}
+                    <span>{tab.label}</span>
+                    {typeof tab.count === 'number' && tab.count > 0 && (
+                      <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-primary/10 text-primary font-semibold">
+                        {tab.count}
+                      </span>
+                    )}
                     {activeTab === tab.id && (
                       <motion.div
                         layoutId="activeTab"
@@ -142,10 +163,40 @@ export function FichaCultural({ platillo, isOpen, onClose }: FichaCulturalProps)
                     <RecetaSection
                       instrucciones={platillo.instrucciones}
                       ingredientes={platillo.ingredientes}
+                      guarniciones={platillo.guarniciones}
                     />
                   )}
                   {activeTab === 'historia' && (
-                    <HistoriaSection contenido={platillo.contextoHistorico} />
+                    <HistoriaSection
+                      contenido={platillo.contextoHistorico}
+                      leyendaOrigen={platillo.leyendaOrigen}
+                    />
+                  )}
+                  {activeTab === 'puentes' && (
+                    <PuentesCulinariosSection
+                      puentes={puentes}
+                      onProponerPuente={proponerPuente}
+                      currentUserId={user?.uid}
+                      currentUserName={user?.displayName || user?.email?.split('@')[0]}
+                    />
+                  )}
+                  {activeTab === 'adaptaciones' && (
+                    <AdaptacionesLocalesSection
+                      adaptaciones={adaptaciones}
+                      onProponerAdaptacion={proponerAdaptacion}
+                      onVotarAdaptacion={votarAdaptacion}
+                      currentUserId={user?.uid}
+                      currentUserName={user?.displayName || user?.email?.split('@')[0]}
+                    />
+                  )}
+                  {activeTab === 'raices' && (
+                    <ValidacionRaicesSection
+                      validaciones={validaciones}
+                      metricas={metricas}
+                      onEnviarValidacion={enviarValidacionRaices}
+                      currentUserId={user?.uid}
+                      currentUserName={user?.displayName || user?.email?.split('@')[0]}
+                    />
                   )}
                   {activeTab === 'festival' && (
                     <FestividadesSection festividades={platillo.festividades} />
