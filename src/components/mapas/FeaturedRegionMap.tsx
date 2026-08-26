@@ -31,7 +31,7 @@ export function FeaturedRegionMap({
       boxZoom={false}
       keyboard={false}
     >
-      <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png" />
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       {markerLat != null && markerLng != null && (
         <CircleMarker
           center={[markerLat, markerLng]}

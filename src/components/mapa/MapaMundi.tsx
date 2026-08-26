@@ -65,16 +65,15 @@ const spiceIcon = new L.DivIcon({
 })
 
 const MAP_TILE_STYLES = {
-  light: 'https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png',
-
-  voyager: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-  dark: 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
+  light: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  voyager: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+  dark: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 } as const
 
 const MAP_STYLE_LABELS: Record<keyof typeof MAP_TILE_STYLES, string> = {
-  light: 'Light',
-  voyager: 'Voyager',
-  dark: 'Dark',
+  light: 'Estándar',
+  voyager: 'Humanitario',
+  dark: 'Clásico',
 }
 
 function MapController({

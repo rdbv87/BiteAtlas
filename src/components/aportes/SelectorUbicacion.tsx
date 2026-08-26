@@ -67,7 +67,7 @@ export function SelectorUbicacion({ center, zoom = 6, value, onChange }: Selecto
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <LocationClickHandler onChange={onChange} />
         <MapViewController center={center} zoom={zoom} value={value} />
