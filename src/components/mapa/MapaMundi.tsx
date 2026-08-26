@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import { doc, getDoc } from 'firebase/firestore'
 import { firestore } from '@/services/firebase'
 import L from 'leaflet'
@@ -70,12 +70,6 @@ const MAP_TILE_STYLES = {
   dark: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 } as const
 
-const MAP_STYLE_LABELS: Record<keyof typeof MAP_TILE_STYLES, string> = {
-  light: 'Estándar',
-  voyager: 'Humanitario',
-  dark: 'Clásico',
-}
-
 function MapController({
   selectedPais,
   recetas,
@@ -95,7 +89,10 @@ function MapController({
   return null
 }
 
+import { useI18n } from '@/i18n/context'
+
 export function MapaMundi() {
+  const { t } = useI18n()
   const { paisesConRecetas, recetasPorPais, regionesPorPais, isLoading, error } = useLandingData()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -216,14 +213,12 @@ export function MapaMundi() {
         aria-label="Mapa culinario interactivo"
       >
         <div className="max-w-md border border-[#f0a35b]/45 bg-[#1f534f] p-8 text-center shadow-2xl">
-          <p className="text-xs uppercase tracking-[0.24em] text-[#f0a35b]">Atlas culinario</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-[#f0a35b]">{t('map.title')}</p>
           <h1 className="font-editorial mt-3 text-4xl leading-tight">
-            {error ? 'No pudimos abrir el atlas.' : 'El mapa todavía está en blanco.'}
+            {error ? t('common.error') : t('map.emptyTitle')}
           </h1>
           <p className="mt-4 text-sm leading-6 text-[#d4ddd1]">
-            {error
-              ? 'Vuelve a intentarlo en unos minutos.'
-              : 'Un país aparece en el mapa cuando alguien publica una receta suya. Aporta la tuya y colócala aquí.'}
+            {error ? t('common.retry') : t('map.emptyDescription')}
           </p>
           <Link
             href={error ? '/' : '/aportes'}
@@ -231,10 +226,10 @@ export function MapaMundi() {
           >
             {error ? (
               <>
-                <ArrowLeft className="h-4 w-4" /> Volver al inicio
+                <ArrowLeft className="h-4 w-4" /> {t('common.backToHome')}
               </>
             ) : (
-              'Aportar una receta'
+              t('map.contributeRecipe')
             )}
           </Link>
         </div>
@@ -248,14 +243,14 @@ export function MapaMundi() {
         <div className="pointer-events-auto max-w-sm border border-[#f0a35b]/55 bg-[#173c3a]/95 p-4 text-[#f5f1e8] shadow-[0_18px_32px_rgba(8,36,31,0.28)] backdrop-blur-sm sm:p-5">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.24em] text-[#f0a35b]">
-              <span className="h-2 w-2 rounded-full bg-[#f0a35b]" /> Atlas culinario · mapa 01
+              <span className="h-2 w-2 rounded-full bg-[#f0a35b]" /> {t('map.title')}
             </div>
             <Link
               href="/"
               aria-label="Volver a la landing"
               className="inline-flex shrink-0 items-center gap-1 text-xs text-[#d4ddd1] transition-colors hover:text-[#f0a35b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f0a35b]"
             >
-              <ArrowLeft className="h-3.5 w-3.5" /> Inicio
+              <ArrowLeft className="h-3.5 w-3.5" /> {t('nav.home')}
             </Link>
           </div>
           <h1 className="mt-2 font-editorial text-2xl sm:text-3xl">
@@ -282,21 +277,29 @@ export function MapaMundi() {
 
         <div className="pointer-events-auto flex items-center gap-2">
           <div className="flex flex-wrap items-center gap-1 rounded-full border border-[#173c3a]/10 bg-[#f5f1e8]/90 p-1.5 shadow-lg backdrop-blur-md">
-            {(Object.keys(MAP_TILE_STYLES) as Array<keyof typeof MAP_TILE_STYLES>).map((key) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setMapStyle(key)}
-                aria-pressed={mapStyle === key}
-                className={`rounded-full px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em] transition-colors ${
-                  mapStyle === key
-                    ? 'bg-[#173c3a] text-[#f5f1e8]'
-                    : 'text-[#173c3a] hover:bg-[#173c3a]/5'
-                }`}
-              >
-                {MAP_STYLE_LABELS[key]}
-              </button>
-            ))}
+            {(Object.keys(MAP_TILE_STYLES) as Array<keyof typeof MAP_TILE_STYLES>).map((key) => {
+              const labelKey =
+                key === 'light'
+                  ? 'map.layerStyles.standard'
+                  : key === 'voyager'
+                    ? 'map.layerStyles.humanitarian'
+                    : 'map.layerStyles.classic'
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setMapStyle(key)}
+                  aria-pressed={mapStyle === key}
+                  className={`rounded-full px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em] transition-colors ${
+                    mapStyle === key
+                      ? 'bg-[#173c3a] text-[#f5f1e8]'
+                      : 'text-[#173c3a] hover:bg-[#173c3a]/5'
+                  }`}
+                >
+                  {t(labelKey)}
+                </button>
+              )
+            })}
           </div>
 
           <UserNav />

@@ -24,6 +24,8 @@ export const metadata: Metadata = {
     'Plataforma de expedición culinaria y puente de intercambio cultural. Conecta tradiciones, historias antropológicas y recetas auténticas de todo el mundo.',
 }
 
+import { I18nProvider } from '@/i18n/context'
+
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html
@@ -38,7 +40,9 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         geist.variable
       )}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <I18nProvider>{children}</I18nProvider>
+      </body>
     </html>
   )
 }
