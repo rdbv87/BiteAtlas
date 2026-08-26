@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'
 import type { Language, TranslationSchema } from './types'
 import { es } from './locales/es'
 import { en } from './locales/en'
